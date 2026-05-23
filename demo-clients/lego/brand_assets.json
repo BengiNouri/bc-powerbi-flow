@@ -2,7 +2,7 @@
   "client_url": "https://www.lego.com",
   "client_name": "LEGO",
   "logo_url": "https://www.lego.com/cdn/cs/set/assets/blt03f2efb7d9b56b3a/LEGO_logo.svg",
-  "logo_local": "demo-clients/lego/logo.svg",
+  "logo_local": "demo-clients/lego/logo.png",
   "colors": {
     "primary": "#D01012",
     "secondary": "#FFCF00",

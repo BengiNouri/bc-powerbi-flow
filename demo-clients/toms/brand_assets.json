@@ -2,7 +2,7 @@
   "client_url": "https://www.toms.com",
   "client_name": "Toms",
   "logo_url": "https://www.toms.com/logo.svg",
-  "logo_local": "demo-clients/toms/logo.svg",
+  "logo_local": "demo-clients/toms/logo.png",
   "colors": {
     "primary": "#C8102E",
     "secondary": "#7A1A2B",

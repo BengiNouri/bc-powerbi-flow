@@ -2,7 +2,7 @@
   "client_url": "https://www.vestas.com",
   "client_name": "Vestas",
   "logo_url": "https://www.vestas.com/content/dam/vestas-com/global/en/logo/Vestas_Logo_RGB.svg",
-  "logo_local": "output/branding/logo.svg",
+  "logo_local": "output/branding/logo.png",
   "colors": {
     "primary": "#0048AD",
     "secondary": "#00A0DC",
