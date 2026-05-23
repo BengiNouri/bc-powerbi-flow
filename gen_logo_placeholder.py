@@ -42,19 +42,14 @@ def main() -> None:
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     draw.text(((width - tw) / 2, (height - th) / 2 - bbox[1]), text, fill=primary, font=font)
 
-    out_path = Path(brand.get("logo_local", "")) if brand.get("logo_local") else None
-    if not out_path:
-        slug = name.lower().replace(" ", "-").replace("ü", "u").replace("ø", "o").replace("æ", "ae").replace("å", "aa")
-        out_path = ROOT / "demo-clients" / slug / "logo.png"
-    else:
-        out_path = ROOT / out_path
-        out_path = out_path.with_suffix(".png")
-
+    # Always write to demo-clients/<slug>/logo.png (per-client, not shared)
+    slug = name.lower().replace(" ", "-").replace("ü", "u").replace("ø", "o").replace("æ", "ae").replace("å", "aa")
+    out_path = ROOT / "demo-clients" / slug / "logo.png"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(out_path, "PNG")
     print(f"Wrote {out_path.relative_to(ROOT)}")
 
-    # Update brand_assets.json to point at the new PNG
+    # Update brand_assets.json to point at the new PNG (relative to repo root)
     brand["logo_local"] = str(out_path.relative_to(ROOT)).replace("\\", "/")
     BRAND_FILE.write_text(json.dumps(brand, indent=2, ensure_ascii=False), encoding="utf-8")
 
