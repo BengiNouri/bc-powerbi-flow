@@ -56,19 +56,23 @@ Also recommended: `Claude in Chrome` extension for any Fabric web UI step we can
 ## The orchestration prompt (paste this to Claude on day one)
 
 ```
-You are building a Power BI data warehouse demo for a new client.
+You are building a Power BI data warehouse demo for a new Akse client.
 
-Context:
-- Source: <BC API | Supabase | CSV | <other>>
-- Target architecture: <source> → Supabase Postgres staging → Fabric Lakehouse → Direct Lake semantic model → PBIP report
-- Workspace ID: <fabric_workspace_id>
-- Lakehouse ID: <fabric_lakehouse_id>
-- Client name: <ClientName>
+Follow PLAYBOOK.md exactly. Each phase has a verify gate — STOP at it if it
+fails. Do not silently proceed.
 
-Follow the playbook in PLAYBOOK.md exactly. After each phase, run its verification
-gate and STOP if it fails — do not silently proceed.
+Before phase 0a, ASK ME these 4 things in one message (use AskUserQuestion):
 
-Rules of engagement:
+  1. Client name (display name on report Page 1)
+  2. Client website URL (used by Phase 0c to extract brand)
+  3. Source data type — pick one:
+       postgres | mssql | bc_odata | hubspot | csv_folder
+  4. Fabric workspace ID + Lakehouse ID (paste both)
+
+After I answer, write them into .env, then propose the 8-phase plan with
+verify commands and wait for my approval before Phase 0a.
+
+Rules of engagement (in addition to the playbook):
 1. Think before coding. Surface assumptions. If a step has two reasonable paths,
    present both and ask — don't pick silently.
 2. Simplicity first. No abstractions, configuration knobs, or error handling for
@@ -79,9 +83,8 @@ Rules of engagement:
 6. Each PBI table Create MUST be followed by RefreshWithXMLA before any DAX runs.
 7. Each visual.json projection MUST have queryRef + nativeQueryRef populated.
 8. Save report as .pbip (not .pbix) — only .pbip exposes visual JSON for scripting.
-
-Start by reading PLAYBOOK.md fully, then propose a 6-phase plan with verify
-commands and wait for approval before phase 1.
+9. WCAG AA contrast required on all brand colours. If contrast fails, auto-fall
+   back and warn — do not ship a low-contrast report.
 ```
 
 ---

@@ -1,0 +1,28 @@
+{
+  "client_url": "https://www.vestas.com",
+  "client_name": "Vestas",
+  "logo_url": "https://www.vestas.com/content/dam/vestas-com/global/en/logo/Vestas_Logo_RGB.svg",
+  "logo_local": "output/branding/logo.svg",
+  "colors": {
+    "primary": "#0048AD",
+    "secondary": "#00A0DC",
+    "accent": "#E5F2FB",
+    "success": "#3FA34D",
+    "warning": "#E67E22",
+    "background": "#FFFFFF",
+    "text": "#1A1A1A"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter",
+    "fallback": "Segoe UI"
+  },
+  "language": "da-DK",
+  "confidence": {
+    "logo": "high",
+    "primary_color": "high",
+    "secondary_color": "high",
+    "fonts": "medium"
+  },
+  "warnings": []
+}
