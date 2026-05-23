@@ -1,0 +1,1017 @@
+[
+  {
+    "name": "gold_dim_campaign",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\dim_campaign.parquet",
+    "columns": [
+      {
+        "name": "campaign_id",
+        "dataType": "string",
+        "sourceColumn": "campaign_id"
+      },
+      {
+        "name": "campaign_name",
+        "dataType": "string",
+        "sourceColumn": "campaign_name"
+      },
+      {
+        "name": "campaign_type",
+        "dataType": "string",
+        "sourceColumn": "campaign_type"
+      },
+      {
+        "name": "status",
+        "dataType": "string",
+        "sourceColumn": "status"
+      },
+      {
+        "name": "start_date",
+        "dataType": "dateTime",
+        "sourceColumn": "start_date",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "end_date",
+        "dataType": "dateTime",
+        "sourceColumn": "end_date",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "budget_dkk",
+        "dataType": "int64",
+        "sourceColumn": "budget_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "spent_dkk",
+        "dataType": "int64",
+        "sourceColumn": "spent_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "target_audience",
+        "dataType": "string",
+        "sourceColumn": "target_audience"
+      },
+      {
+        "name": "owner",
+        "dataType": "string",
+        "sourceColumn": "owner"
+      },
+      {
+        "name": "roi_pct",
+        "dataType": "double",
+        "sourceColumn": "roi_pct",
+        "formatString": "0.00%"
+      }
+    ]
+  },
+  {
+    "name": "gold_dim_customer",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\dim_customer.parquet",
+    "columns": [
+      {
+        "name": "customer_key",
+        "dataType": "string",
+        "sourceColumn": "customer_key"
+      },
+      {
+        "name": "crm_company_id",
+        "dataType": "string",
+        "sourceColumn": "crm_company_id"
+      },
+      {
+        "name": "bc_customer_number",
+        "dataType": "string",
+        "sourceColumn": "bc_customer_number"
+      },
+      {
+        "name": "customer_name",
+        "dataType": "string",
+        "sourceColumn": "customer_name"
+      },
+      {
+        "name": "city",
+        "dataType": "string",
+        "sourceColumn": "city"
+      },
+      {
+        "name": "country",
+        "dataType": "string",
+        "sourceColumn": "country"
+      },
+      {
+        "name": "country_group",
+        "dataType": "string",
+        "sourceColumn": "country_group"
+      },
+      {
+        "name": "industry",
+        "dataType": "string",
+        "sourceColumn": "industry"
+      },
+      {
+        "name": "segment",
+        "dataType": "string",
+        "sourceColumn": "segment"
+      },
+      {
+        "name": "revenue_segment",
+        "dataType": "string",
+        "sourceColumn": "revenue_segment"
+      },
+      {
+        "name": "customer_status",
+        "dataType": "string",
+        "sourceColumn": "customer_status"
+      },
+      {
+        "name": "annual_revenue_dkk",
+        "dataType": "int64",
+        "sourceColumn": "annual_revenue_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "employees",
+        "dataType": "int64",
+        "sourceColumn": "employees",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "lead_source",
+        "dataType": "string",
+        "sourceColumn": "lead_source"
+      },
+      {
+        "name": "owner",
+        "dataType": "string",
+        "sourceColumn": "owner"
+      }
+    ]
+  },
+  {
+    "name": "gold_dim_date",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\dim_date.parquet",
+    "columns": [
+      {
+        "name": "date",
+        "dataType": "string",
+        "sourceColumn": "date"
+      },
+      {
+        "name": "date_key",
+        "dataType": "int64",
+        "sourceColumn": "date_key",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "year",
+        "dataType": "int64",
+        "sourceColumn": "year",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "quarter",
+        "dataType": "int64",
+        "sourceColumn": "quarter",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "month",
+        "dataType": "int64",
+        "sourceColumn": "month",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "day",
+        "dataType": "int64",
+        "sourceColumn": "day",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "day_name",
+        "dataType": "string",
+        "sourceColumn": "day_name"
+      },
+      {
+        "name": "month_name",
+        "dataType": "string",
+        "sourceColumn": "month_name"
+      },
+      {
+        "name": "day_of_week",
+        "dataType": "int64",
+        "sourceColumn": "day_of_week",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "week_of_year",
+        "dataType": "int64",
+        "sourceColumn": "week_of_year",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "year_quarter",
+        "dataType": "string",
+        "sourceColumn": "year_quarter"
+      },
+      {
+        "name": "year_month",
+        "dataType": "string",
+        "sourceColumn": "year_month"
+      },
+      {
+        "name": "is_weekend",
+        "dataType": "boolean",
+        "sourceColumn": "is_weekend"
+      }
+    ]
+  },
+  {
+    "name": "gold_dim_department",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\dim_department.parquet",
+    "columns": [
+      {
+        "name": "department",
+        "dataType": "string",
+        "sourceColumn": "department"
+      },
+      {
+        "name": "headcount",
+        "dataType": "int64",
+        "sourceColumn": "headcount",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "avg_salary",
+        "dataType": "int64",
+        "sourceColumn": "avg_salary",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "total_cost",
+        "dataType": "int64",
+        "sourceColumn": "total_cost",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "department_id",
+        "dataType": "string",
+        "sourceColumn": "department_id"
+      }
+    ]
+  },
+  {
+    "name": "gold_dim_employee",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\dim_employee.parquet",
+    "columns": [
+      {
+        "name": "employee_id",
+        "dataType": "string",
+        "sourceColumn": "employee_id"
+      },
+      {
+        "name": "first_name",
+        "dataType": "string",
+        "sourceColumn": "first_name"
+      },
+      {
+        "name": "last_name",
+        "dataType": "string",
+        "sourceColumn": "last_name"
+      },
+      {
+        "name": "department",
+        "dataType": "string",
+        "sourceColumn": "department"
+      },
+      {
+        "name": "role",
+        "dataType": "string",
+        "sourceColumn": "role"
+      },
+      {
+        "name": "hire_date",
+        "dataType": "dateTime",
+        "sourceColumn": "hire_date",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "termination_date",
+        "dataType": "dateTime",
+        "sourceColumn": "termination_date",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "status",
+        "dataType": "string",
+        "sourceColumn": "status"
+      },
+      {
+        "name": "tenure_years",
+        "dataType": "double",
+        "sourceColumn": "tenure_years",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "annual_salary_dkk",
+        "dataType": "int64",
+        "sourceColumn": "annual_salary_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "monthly_cost_dkk",
+        "dataType": "int64",
+        "sourceColumn": "monthly_cost_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "city",
+        "dataType": "string",
+        "sourceColumn": "city"
+      },
+      {
+        "name": "employment_type",
+        "dataType": "string",
+        "sourceColumn": "employment_type"
+      }
+    ]
+  },
+  {
+    "name": "gold_dim_item",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\dim_item.parquet",
+    "columns": [
+      {
+        "name": "item_key",
+        "dataType": "string",
+        "sourceColumn": "item_key"
+      },
+      {
+        "name": "item_name",
+        "dataType": "string",
+        "sourceColumn": "item_name"
+      },
+      {
+        "name": "item_type",
+        "dataType": "string",
+        "sourceColumn": "item_type"
+      },
+      {
+        "name": "category_code",
+        "dataType": "string",
+        "sourceColumn": "category_code"
+      },
+      {
+        "name": "unit_price",
+        "dataType": "int64",
+        "sourceColumn": "unit_price",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "unit_cost",
+        "dataType": "double",
+        "sourceColumn": "unit_cost",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "inventory_qty",
+        "dataType": "int64",
+        "sourceColumn": "inventory_qty",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "margin_pct",
+        "dataType": "double",
+        "sourceColumn": "margin_pct",
+        "formatString": "0.00%"
+      },
+      {
+        "name": "revenue_category",
+        "dataType": "string",
+        "sourceColumn": "revenue_category"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_budget",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_budget.parquet",
+    "columns": [
+      {
+        "name": "budget_id",
+        "dataType": "string",
+        "sourceColumn": "budget_id"
+      },
+      {
+        "name": "year",
+        "dataType": "int64",
+        "sourceColumn": "year",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "month",
+        "dataType": "int64",
+        "sourceColumn": "month",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "period",
+        "dataType": "string",
+        "sourceColumn": "period"
+      },
+      {
+        "name": "category",
+        "dataType": "string",
+        "sourceColumn": "category"
+      },
+      {
+        "name": "account",
+        "dataType": "string",
+        "sourceColumn": "account"
+      },
+      {
+        "name": "budget_dkk",
+        "dataType": "int64",
+        "sourceColumn": "budget_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "actual_dkk",
+        "dataType": "double",
+        "sourceColumn": "actual_dkk",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "variance_dkk",
+        "dataType": "double",
+        "sourceColumn": "variance_dkk",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "department",
+        "dataType": "string",
+        "sourceColumn": "department"
+      },
+      {
+        "name": "date_key",
+        "dataType": "int64",
+        "sourceColumn": "date_key",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "variance_pct",
+        "dataType": "double",
+        "sourceColumn": "variance_pct",
+        "formatString": "0.00%"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_hr",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_hr.parquet",
+    "columns": [
+      {
+        "name": "timesheet_id",
+        "dataType": "string",
+        "sourceColumn": "timesheet_id"
+      },
+      {
+        "name": "employee_id",
+        "dataType": "string",
+        "sourceColumn": "employee_id"
+      },
+      {
+        "name": "department",
+        "dataType": "string",
+        "sourceColumn": "department"
+      },
+      {
+        "name": "period",
+        "dataType": "string",
+        "sourceColumn": "period"
+      },
+      {
+        "name": "billable_hours",
+        "dataType": "int64",
+        "sourceColumn": "billable_hours",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "internal_hours",
+        "dataType": "int64",
+        "sourceColumn": "internal_hours",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "total_hours",
+        "dataType": "int64",
+        "sourceColumn": "total_hours",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "utilization_pct",
+        "dataType": "double",
+        "sourceColumn": "utilization_pct",
+        "formatString": "0.00%"
+      },
+      {
+        "name": "monthly_cost_dkk",
+        "dataType": "int64",
+        "sourceColumn": "monthly_cost_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "cost_per_billable_hour",
+        "dataType": "int64",
+        "sourceColumn": "cost_per_billable_hour",
+        "formatString": "#,##0"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_marketing",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_marketing.parquet",
+    "columns": [
+      {
+        "name": "campaign_id",
+        "dataType": "string",
+        "sourceColumn": "campaign_id"
+      },
+      {
+        "name": "total_leads",
+        "dataType": "int64",
+        "sourceColumn": "total_leads",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "qualified_leads",
+        "dataType": "int64",
+        "sourceColumn": "qualified_leads",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "converted_leads",
+        "dataType": "int64",
+        "sourceColumn": "converted_leads",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "avg_score",
+        "dataType": "double",
+        "sourceColumn": "avg_score",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "conversion_rate",
+        "dataType": "double",
+        "sourceColumn": "conversion_rate",
+        "formatString": "0.00%"
+      },
+      {
+        "name": "campaign_type",
+        "dataType": "string",
+        "sourceColumn": "campaign_type"
+      },
+      {
+        "name": "budget_dkk",
+        "dataType": "int64",
+        "sourceColumn": "budget_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "spent_dkk",
+        "dataType": "int64",
+        "sourceColumn": "spent_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "cost_per_lead",
+        "dataType": "int64",
+        "sourceColumn": "cost_per_lead",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "cost_per_conversion",
+        "dataType": "int64",
+        "sourceColumn": "cost_per_conversion",
+        "formatString": "#,##0"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_nps",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_nps.parquet",
+    "columns": [
+      {
+        "name": "survey_id",
+        "dataType": "string",
+        "sourceColumn": "survey_id"
+      },
+      {
+        "name": "bc_customer_number",
+        "dataType": "string",
+        "sourceColumn": "bc_customer_number"
+      },
+      {
+        "name": "company_name",
+        "dataType": "string",
+        "sourceColumn": "company_name"
+      },
+      {
+        "name": "survey_date",
+        "dataType": "dateTime",
+        "sourceColumn": "survey_date",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "year",
+        "dataType": "int64",
+        "sourceColumn": "year",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "quarter",
+        "dataType": "int64",
+        "sourceColumn": "quarter",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "nps_score",
+        "dataType": "int64",
+        "sourceColumn": "nps_score",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "nps_category",
+        "dataType": "string",
+        "sourceColumn": "nps_category"
+      },
+      {
+        "name": "comment",
+        "dataType": "string",
+        "sourceColumn": "comment"
+      },
+      {
+        "name": "date_key",
+        "dataType": "int64",
+        "sourceColumn": "date_key",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "customer_key",
+        "dataType": "string",
+        "sourceColumn": "customer_key"
+      },
+      {
+        "name": "is_promoter",
+        "dataType": "int64",
+        "sourceColumn": "is_promoter",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "is_detractor",
+        "dataType": "int64",
+        "sourceColumn": "is_detractor",
+        "formatString": "#,##0"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_pipeline",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_pipeline.parquet",
+    "columns": [
+      {
+        "name": "deal_id",
+        "dataType": "string",
+        "sourceColumn": "deal_id"
+      },
+      {
+        "name": "customer_key",
+        "dataType": "string",
+        "sourceColumn": "customer_key"
+      },
+      {
+        "name": "crm_company_id",
+        "dataType": "string",
+        "sourceColumn": "crm_company_id"
+      },
+      {
+        "name": "deal_name",
+        "dataType": "string",
+        "sourceColumn": "deal_name"
+      },
+      {
+        "name": "amount_dkk",
+        "dataType": "int64",
+        "sourceColumn": "amount_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "weighted_amount_dkk",
+        "dataType": "int64",
+        "sourceColumn": "weighted_amount_dkk",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "stage",
+        "dataType": "string",
+        "sourceColumn": "stage"
+      },
+      {
+        "name": "probability",
+        "dataType": "double",
+        "sourceColumn": "probability",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "deal_status",
+        "dataType": "string",
+        "sourceColumn": "deal_status"
+      },
+      {
+        "name": "is_won",
+        "dataType": "boolean",
+        "sourceColumn": "is_won"
+      },
+      {
+        "name": "is_lost",
+        "dataType": "boolean",
+        "sourceColumn": "is_lost"
+      },
+      {
+        "name": "created_date_key",
+        "dataType": "int64",
+        "sourceColumn": "created_date_key",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "close_date_key",
+        "dataType": "int64",
+        "sourceColumn": "close_date_key",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "days_in_pipeline",
+        "dataType": "int64",
+        "sourceColumn": "days_in_pipeline",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "deal_owner",
+        "dataType": "string",
+        "sourceColumn": "deal_owner"
+      },
+      {
+        "name": "deal_source",
+        "dataType": "string",
+        "sourceColumn": "deal_source"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_sales",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_sales.parquet",
+    "columns": [
+      {
+        "name": "line_id",
+        "dataType": "string",
+        "sourceColumn": "line_id"
+      },
+      {
+        "name": "invoice_number",
+        "dataType": "string",
+        "sourceColumn": "invoice_number"
+      },
+      {
+        "name": "date_key",
+        "dataType": "int64",
+        "sourceColumn": "date_key",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "item_key",
+        "dataType": "string",
+        "sourceColumn": "item_key"
+      },
+      {
+        "name": "customer_key",
+        "dataType": "string",
+        "sourceColumn": "customer_key"
+      },
+      {
+        "name": "item_name",
+        "dataType": "string",
+        "sourceColumn": "item_name"
+      },
+      {
+        "name": "category_code",
+        "dataType": "string",
+        "sourceColumn": "category_code"
+      },
+      {
+        "name": "quantity",
+        "dataType": "int64",
+        "sourceColumn": "quantity",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "unit_price",
+        "dataType": "int64",
+        "sourceColumn": "unit_price",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "revenue_dkk",
+        "dataType": "double",
+        "sourceColumn": "revenue_dkk",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "discount_dkk",
+        "dataType": "double",
+        "sourceColumn": "discount_dkk",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "vat_dkk",
+        "dataType": "double",
+        "sourceColumn": "vat_dkk",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "cogs_dkk",
+        "dataType": "double",
+        "sourceColumn": "cogs_dkk",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "gross_profit_dkk",
+        "dataType": "double",
+        "sourceColumn": "gross_profit_dkk",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "gross_margin_pct",
+        "dataType": "double",
+        "sourceColumn": "gross_margin_pct",
+        "formatString": "0.00%"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_tickets",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_tickets.parquet",
+    "columns": [
+      {
+        "name": "ticket_id",
+        "dataType": "string",
+        "sourceColumn": "ticket_id"
+      },
+      {
+        "name": "bc_customer_number",
+        "dataType": "string",
+        "sourceColumn": "bc_customer_number"
+      },
+      {
+        "name": "company_name",
+        "dataType": "string",
+        "sourceColumn": "company_name"
+      },
+      {
+        "name": "category",
+        "dataType": "string",
+        "sourceColumn": "category"
+      },
+      {
+        "name": "priority",
+        "dataType": "string",
+        "sourceColumn": "priority"
+      },
+      {
+        "name": "status",
+        "dataType": "string",
+        "sourceColumn": "status"
+      },
+      {
+        "name": "created_date",
+        "dataType": "dateTime",
+        "sourceColumn": "created_date",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "resolved_date",
+        "dataType": "dateTime",
+        "sourceColumn": "resolved_date",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "response_time_hours",
+        "dataType": "double",
+        "sourceColumn": "response_time_hours",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "sla_target_hours",
+        "dataType": "int64",
+        "sourceColumn": "sla_target_hours",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "sla_met",
+        "dataType": "boolean",
+        "sourceColumn": "sla_met"
+      },
+      {
+        "name": "satisfaction_rating",
+        "dataType": "double",
+        "sourceColumn": "satisfaction_rating",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "assigned_to",
+        "dataType": "string",
+        "sourceColumn": "assigned_to"
+      },
+      {
+        "name": "created_date_key",
+        "dataType": "int64",
+        "sourceColumn": "created_date_key",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "customer_key",
+        "dataType": "string",
+        "sourceColumn": "customer_key"
+      },
+      {
+        "name": "resolution_days",
+        "dataType": "double",
+        "sourceColumn": "resolution_days",
+        "formatString": "#,##0.00"
+      }
+    ]
+  },
+  {
+    "name": "gold_fact_web_sessions",
+    "path": "C:\\\\Users\\\\sajad\\\\Project\\\\cronus-dw\\\\output\\\\gold\\\\fact_web_sessions.parquet",
+    "columns": [
+      {
+        "name": "session_month",
+        "dataType": "dateTime",
+        "sourceColumn": "session_month",
+        "formatString": "dd/MM/yyyy"
+      },
+      {
+        "name": "source",
+        "dataType": "string",
+        "sourceColumn": "source"
+      },
+      {
+        "name": "sessions",
+        "dataType": "int64",
+        "sourceColumn": "sessions",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "new_users",
+        "dataType": "int64",
+        "sourceColumn": "new_users",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "bounce_rate",
+        "dataType": "double",
+        "sourceColumn": "bounce_rate",
+        "formatString": "0.00%"
+      },
+      {
+        "name": "pages_per_session",
+        "dataType": "double",
+        "sourceColumn": "pages_per_session",
+        "formatString": "#,##0.00"
+      },
+      {
+        "name": "avg_duration_sec",
+        "dataType": "int64",
+        "sourceColumn": "avg_duration_sec",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "conversions",
+        "dataType": "int64",
+        "sourceColumn": "conversions",
+        "formatString": "#,##0"
+      },
+      {
+        "name": "conversion_rate",
+        "dataType": "double",
+        "sourceColumn": "conversion_rate",
+        "formatString": "0.00%"
+      },
+      {
+        "name": "date_key",
+        "dataType": "int64",
+        "sourceColumn": "date_key",
+        "formatString": "#,##0"
+      }
+    ]
+  }
+]

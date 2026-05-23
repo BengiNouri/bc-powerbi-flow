@@ -1,0 +1,344 @@
+// ============================================================
+// Akse Demo DW — Full Stack DAX Measures
+// ============================================================
+// Create in Fabric semantic model: New measure -> paste each block
+// Tables: gold_fact_pipeline, gold_fact_marketing, gold_fact_web_sessions,
+//         gold_fact_budget, gold_fact_hr, gold_fact_nps, gold_fact_tickets
+// ============================================================
+
+
+// ─── PIPELINE / CRM MEASURES ────────────────────────────────
+
+Pipeline Value =
+SUMX ( gold_fact_pipeline, gold_fact_pipeline[amount_dkk] )
+
+Weighted Pipeline =
+SUMX ( gold_fact_pipeline, gold_fact_pipeline[weighted_amount_dkk] )
+
+Open Pipeline =
+CALCULATE (
+    [Pipeline Value],
+    gold_fact_pipeline[deal_status] = "Open"
+)
+
+Won Revenue =
+CALCULATE (
+    [Pipeline Value],
+    gold_fact_pipeline[deal_status] = "Won"
+)
+
+Lost Revenue =
+CALCULATE (
+    [Pipeline Value],
+    gold_fact_pipeline[deal_status] = "Lost"
+)
+
+Win Rate =
+VAR _won = CALCULATE ( COUNTROWS ( gold_fact_pipeline ), gold_fact_pipeline[is_won] = TRUE )
+VAR _closed = CALCULATE (
+    COUNTROWS ( gold_fact_pipeline ),
+    gold_fact_pipeline[deal_status] IN { "Won", "Lost" }
+)
+RETURN
+    DIVIDE ( _won, _closed, 0 )
+
+Deal Count =
+COUNTROWS ( gold_fact_pipeline )
+
+Open Deals =
+CALCULATE ( [Deal Count], gold_fact_pipeline[deal_status] = "Open" )
+
+Avg Deal Size =
+DIVIDE ( [Pipeline Value], [Deal Count], 0 )
+
+Avg Days in Pipeline =
+AVERAGEX ( gold_fact_pipeline, gold_fact_pipeline[days_in_pipeline] )
+
+Pipeline by Stage =
+SUMX (
+    FILTER ( gold_fact_pipeline, gold_fact_pipeline[deal_status] = "Open" ),
+    gold_fact_pipeline[amount_dkk]
+)
+
+
+// ─── MARKETING MEASURES ────────────────────────────────────
+
+Total Leads =
+SUMX ( gold_fact_marketing, gold_fact_marketing[total_leads] )
+
+Qualified Leads =
+SUMX ( gold_fact_marketing, gold_fact_marketing[qualified_leads] )
+
+Converted Leads =
+SUMX ( gold_fact_marketing, gold_fact_marketing[converted_leads] )
+
+Lead Conversion Rate =
+DIVIDE ( [Converted Leads], [Total Leads], 0 )
+
+Avg Cost Per Lead =
+DIVIDE (
+    SUMX ( gold_fact_marketing, gold_fact_marketing[spent_dkk] ),
+    [Total Leads],
+    0
+)
+
+Cost Per Conversion =
+DIVIDE (
+    SUMX ( gold_fact_marketing, gold_fact_marketing[spent_dkk] ),
+    [Converted Leads],
+    0
+)
+
+Marketing Spend =
+SUMX ( gold_fact_marketing, gold_fact_marketing[spent_dkk] )
+
+Marketing Budget =
+SUMX ( gold_fact_marketing, gold_fact_marketing[budget_dkk] )
+
+Marketing Budget Utilization =
+DIVIDE ( [Marketing Spend], [Marketing Budget], 0 )
+
+Campaign Count =
+COUNTROWS ( gold_fact_marketing )
+
+Avg Lead Score =
+AVERAGEX ( gold_fact_marketing, gold_fact_marketing[avg_score] )
+
+
+// ─── WEB ANALYTICS MEASURES ───────────────────────────────
+
+Total Sessions =
+SUMX ( gold_fact_web_sessions, gold_fact_web_sessions[sessions] )
+
+Total New Users =
+SUMX ( gold_fact_web_sessions, gold_fact_web_sessions[new_users] )
+
+Total Web Conversions =
+SUMX ( gold_fact_web_sessions, gold_fact_web_sessions[conversions] )
+
+Web Conversion Rate =
+DIVIDE ( [Total Web Conversions], [Total Sessions], 0 )
+
+Avg Bounce Rate =
+AVERAGEX ( gold_fact_web_sessions, gold_fact_web_sessions[bounce_rate] )
+
+Avg Pages Per Session =
+AVERAGEX ( gold_fact_web_sessions, gold_fact_web_sessions[pages_per_session] )
+
+Avg Session Duration =
+AVERAGEX ( gold_fact_web_sessions, gold_fact_web_sessions[avg_duration_sec] )
+
+
+// ─── FINANCE / BUDGET MEASURES ─────────────────────────────
+
+Budget Total =
+SUMX ( gold_fact_budget, gold_fact_budget[budget_dkk] )
+
+Actual Total =
+SUMX ( gold_fact_budget, gold_fact_budget[actual_dkk] )
+
+Budget Variance =
+[Actual Total] - [Budget Total]
+
+Budget Variance % =
+DIVIDE ( [Budget Variance], ABS ( [Budget Total] ), 0 )
+
+Revenue Budget =
+CALCULATE (
+    [Budget Total],
+    gold_fact_budget[category] = "Revenue"
+)
+
+Revenue Actual =
+CALCULATE (
+    [Actual Total],
+    gold_fact_budget[category] = "Revenue"
+)
+
+COGS Budget =
+CALCULATE (
+    ABS ( [Budget Total] ),
+    gold_fact_budget[category] = "COGS"
+)
+
+COGS Actual =
+CALCULATE (
+    ABS ( [Actual Total] ),
+    gold_fact_budget[category] = "COGS"
+)
+
+OpEx Budget =
+CALCULATE (
+    ABS ( [Budget Total] ),
+    gold_fact_budget[category] = "OpEx"
+)
+
+OpEx Actual =
+CALCULATE (
+    ABS ( [Actual Total] ),
+    gold_fact_budget[category] = "OpEx"
+)
+
+Gross Profit Budget =
+[Revenue Budget] - [COGS Budget]
+
+Gross Profit Actual =
+[Revenue Actual] - [COGS Actual]
+
+Gross Margin % =
+DIVIDE ( [Gross Profit Actual], [Revenue Actual], 0 )
+
+Operating Profit =
+[Gross Profit Actual] - [OpEx Actual]
+
+
+// ─── HR MEASURES ───────────────────────────────────────────
+
+Total Headcount =
+CALCULATE (
+    DISTINCTCOUNT ( gold_dim_employee[employee_id] ),
+    gold_dim_employee[status] = "Active"
+)
+
+Avg Utilization =
+AVERAGEX ( gold_fact_hr, gold_fact_hr[utilization_pct] )
+
+Total Billable Hours =
+SUMX ( gold_fact_hr, gold_fact_hr[billable_hours] )
+
+Total Internal Hours =
+SUMX ( gold_fact_hr, gold_fact_hr[internal_hours] )
+
+Avg Cost Per Billable Hour =
+DIVIDE (
+    SUMX ( gold_fact_hr, gold_fact_hr[monthly_cost_dkk] ),
+    [Total Billable Hours],
+    0
+)
+
+Total Salary Cost =
+SUMX (
+    FILTER ( gold_dim_employee, gold_dim_employee[status] = "Active" ),
+    gold_dim_employee[annual_salary_dkk]
+)
+
+Revenue Per Employee =
+DIVIDE ( [Revenue Actual], [Total Headcount], 0 )
+
+Turnover Rate =
+VAR _terminated = CALCULATE (
+    COUNTROWS ( gold_dim_employee ),
+    gold_dim_employee[status] = "Terminated"
+)
+VAR _total = COUNTROWS ( gold_dim_employee )
+RETURN
+    DIVIDE ( _terminated, _total, 0 )
+
+Avg Tenure Years =
+AVERAGEX (
+    FILTER ( gold_dim_employee, gold_dim_employee[status] = "Active" ),
+    gold_dim_employee[tenure_years]
+)
+
+
+// ─── NPS / CUSTOMER SATISFACTION ───────────────────────────
+
+NPS Score =
+VAR _promoters = SUMX ( gold_fact_nps, gold_fact_nps[is_promoter] )
+VAR _detractors = SUMX ( gold_fact_nps, gold_fact_nps[is_detractor] )
+VAR _total = COUNTROWS ( gold_fact_nps )
+RETURN
+    DIVIDE ( _promoters - _detractors, _total, 0 ) * 100
+
+NPS Responses =
+COUNTROWS ( gold_fact_nps )
+
+Promoter % =
+DIVIDE (
+    SUMX ( gold_fact_nps, gold_fact_nps[is_promoter] ),
+    COUNTROWS ( gold_fact_nps ),
+    0
+)
+
+Detractor % =
+DIVIDE (
+    SUMX ( gold_fact_nps, gold_fact_nps[is_detractor] ),
+    COUNTROWS ( gold_fact_nps ),
+    0
+)
+
+Avg NPS Score =
+AVERAGEX ( gold_fact_nps, gold_fact_nps[nps_score] )
+
+
+// ─── SUPPORT TICKET MEASURES ──────────────────────────────
+
+Total Tickets =
+COUNTROWS ( gold_fact_tickets )
+
+Open Tickets =
+CALCULATE (
+    [Total Tickets],
+    gold_fact_tickets[status] = "Open"
+)
+
+Resolved Tickets =
+CALCULATE (
+    [Total Tickets],
+    gold_fact_tickets[status] = "Resolved"
+)
+
+Resolution Rate =
+DIVIDE ( [Resolved Tickets], [Total Tickets], 0 )
+
+Avg Response Time Hours =
+AVERAGEX ( gold_fact_tickets, gold_fact_tickets[response_time_hours] )
+
+Avg Resolution Days =
+AVERAGEX (
+    FILTER ( gold_fact_tickets, gold_fact_tickets[status] = "Resolved" ),
+    gold_fact_tickets[resolution_days]
+)
+
+SLA Met Rate =
+VAR _met = CALCULATE (
+    COUNTROWS ( gold_fact_tickets ),
+    gold_fact_tickets[sla_met] = TRUE
+)
+RETURN
+    DIVIDE ( _met, [Total Tickets], 0 )
+
+Avg Satisfaction Rating =
+AVERAGEX (
+    FILTER ( gold_fact_tickets, NOT ISBLANK ( gold_fact_tickets[satisfaction_rating] ) ),
+    gold_fact_tickets[satisfaction_rating]
+)
+
+Critical Tickets =
+CALCULATE (
+    [Total Tickets],
+    gold_fact_tickets[priority] = "Critical"
+)
+
+
+// ─── KPI FORMATTING MEASURES ──────────────────────────────
+
+Pipeline Display =
+FORMAT ( [Pipeline Value], "#,##0 kr" )
+
+Win Rate Display =
+FORMAT ( [Win Rate], "0.0%" )
+
+NPS Display =
+FORMAT ( [NPS Score], "+#;-#;0" )
+
+Utilization Display =
+FORMAT ( [Avg Utilization] / 100, "0.0%" )
+
+Budget Variance Display =
+VAR _val = [Budget Variance %]
+RETURN
+    IF ( _val >= 0, "+" & FORMAT ( _val, "0.0%" ), FORMAT ( _val, "0.0%" ) )
+
+SLA Display =
+FORMAT ( [SLA Met Rate], "0.0%" )

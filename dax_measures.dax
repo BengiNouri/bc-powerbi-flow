@@ -1,0 +1,175 @@
+// ============================================================
+// CRONUS DW — DAX Measures for Power BI
+// ============================================================
+// Create these in the Fabric semantic model under fact_sales
+// or create a dedicated _Measures table.
+//
+// HOW TO ADD: In semantic model editor -> New measure -> paste each block
+// ============================================================
+
+
+// ─── SALES MEASURES ─────────────────────────────────────────
+
+Total Revenue =
+SUMX ( fact_sales, fact_sales[revenue_dkk] )
+
+Total COGS =
+SUMX ( fact_sales, fact_sales[cogs_dkk] )
+
+Gross Profit =
+[Total Revenue] - [Total COGS]
+
+Gross Margin % =
+DIVIDE ( [Gross Profit], [Total Revenue], 0 )
+
+Total VAT =
+SUMX ( fact_sales, fact_sales[vat_dkk] )
+
+Revenue incl. VAT =
+[Total Revenue] + [Total VAT]
+
+Total Discount =
+SUMX ( fact_sales, fact_sales[discount_dkk] )
+
+Discount % =
+DIVIDE ( [Total Discount], [Total Revenue] + [Total Discount], 0 )
+
+Total Quantity =
+SUMX ( fact_sales, fact_sales[quantity] )
+
+Avg Order Value =
+DIVIDE ( [Total Revenue], DISTINCTCOUNT ( fact_sales[invoice_number] ), 0 )
+
+Invoice Count =
+DISTINCTCOUNT ( fact_sales[invoice_number] )
+
+Line Count =
+COUNTROWS ( fact_sales )
+
+Avg Lines per Invoice =
+DIVIDE ( [Line Count], [Invoice Count], 0 )
+
+Avg Unit Price =
+DIVIDE ( [Total Revenue], [Total Quantity], 0 )
+
+
+// ─── TIME INTELLIGENCE ──────────────────────────────────────
+
+Revenue YTD =
+TOTALYTD ( [Total Revenue], dim_date[date] )
+
+Revenue Previous Year =
+CALCULATE ( [Total Revenue], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+
+Revenue YoY Growth =
+VAR _current = [Total Revenue]
+VAR _previous = [Revenue Previous Year]
+RETURN
+    DIVIDE ( _current - _previous, _previous, 0 )
+
+Revenue MoM =
+VAR _current = [Total Revenue]
+VAR _previous = CALCULATE ( [Total Revenue], DATEADD ( dim_date[date], -1, MONTH ) )
+RETURN
+    DIVIDE ( _current - _previous, _previous, 0 )
+
+Revenue QTD =
+TOTALQTD ( [Total Revenue], dim_date[date] )
+
+Revenue MTD =
+TOTALMTD ( [Total Revenue], dim_date[date] )
+
+Revenue Rolling 12M =
+CALCULATE (
+    [Total Revenue],
+    DATESINPERIOD ( dim_date[date], MAX ( dim_date[date] ), -12, MONTH )
+)
+
+
+// ─── CUSTOMER MEASURES ──────────────────────────────────────
+
+Customer Count =
+DISTINCTCOUNT ( fact_sales[customer_key] )
+
+Revenue per Customer =
+DIVIDE ( [Total Revenue], [Customer Count], 0 )
+
+Top Customer Revenue =
+MAXX (
+    VALUES ( dim_customer[customer_name] ),
+    CALCULATE ( [Total Revenue] )
+)
+
+
+// ─── PIPELINE / CRM MEASURES ────────────────────────────────
+
+Pipeline Value =
+SUMX ( fact_pipeline, fact_pipeline[deal_amount_dkk] )
+
+Weighted Pipeline =
+SUMX ( fact_pipeline, fact_pipeline[weighted_amount_dkk] )
+
+Open Pipeline =
+CALCULATE (
+    [Pipeline Value],
+    fact_pipeline[deal_status] = "Open"
+)
+
+Won Revenue =
+CALCULATE (
+    [Pipeline Value],
+    fact_pipeline[deal_status] = "Won"
+)
+
+Lost Revenue =
+CALCULATE (
+    [Pipeline Value],
+    fact_pipeline[deal_status] = "Lost"
+)
+
+Win Rate =
+VAR _won = CALCULATE ( COUNTROWS ( fact_pipeline ), fact_pipeline[is_won] = TRUE )
+VAR _closed = CALCULATE (
+    COUNTROWS ( fact_pipeline ),
+    fact_pipeline[deal_status] IN { "Won", "Lost" }
+)
+RETURN
+    DIVIDE ( _won, _closed, 0 )
+
+Deal Count =
+COUNTROWS ( fact_pipeline )
+
+Open Deals =
+CALCULATE ( [Deal Count], fact_pipeline[deal_status] = "Open" )
+
+Avg Deal Size =
+DIVIDE ( [Pipeline Value], [Deal Count], 0 )
+
+Pipeline Coverage =
+DIVIDE ( [Open Pipeline], [Revenue Rolling 12M], 0 )
+
+
+// ─── PRODUCT MEASURES ───────────────────────────────────────
+
+Category Count =
+DISTINCTCOUNT ( fact_sales[category_code] )
+
+Item Count =
+DISTINCTCOUNT ( fact_sales[item_key] )
+
+Best Selling Item =
+TOPN ( 1, VALUES ( dim_item[item_name] ), CALCULATE ( [Total Revenue] ), DESC )
+
+
+// ─── KPI FORMATTING MEASURES ────────────────────────────────
+
+Revenue Display =
+FORMAT ( [Total Revenue], "#,##0 kr" )
+
+Margin Display =
+FORMAT ( [Gross Margin %], "0.0%" )
+
+YoY Display =
+VAR _val = [Revenue YoY Growth]
+RETURN
+    IF ( _val >= 0, "+" & FORMAT ( _val, "0.0%" ), FORMAT ( _val, "0.0%" ) )

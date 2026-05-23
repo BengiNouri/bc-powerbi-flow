@@ -1,0 +1,91 @@
+{
+  "name": "{{client_name}} — Akse Demo DW",
+  "$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/master/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.137.json",
+  "dataColors": [
+    "{{primary}}",
+    "{{secondary}}",
+    "{{accent}}",
+    "{{success}}",
+    "{{warning}}",
+    "{{primary_light}}",
+    "{{secondary_dark}}",
+    "{{neutral}}"
+  ],
+  "good":    "{{success}}",
+  "neutral": "{{accent}}",
+  "bad":     "{{warning}}",
+  "background":          "{{background}}",
+  "foreground":          "{{text}}",
+  "tableAccent":         "{{primary}}",
+  "firstLevelElements":  "{{text}}",
+  "secondLevelElements": "{{primary}}",
+  "thirdLevelElements":  "{{neutral}}",
+  "textClasses": {
+    "title": {
+      "fontFace": "{{heading_font}}",
+      "fontSize": 24,
+      "color":    "{{primary}}"
+    },
+    "header": {
+      "fontFace": "{{heading_font}}",
+      "fontSize": 16,
+      "color":    "{{text}}"
+    },
+    "label": {
+      "fontFace": "{{body_font}}",
+      "fontSize": 12,
+      "color":    "{{text}}"
+    },
+    "callout": {
+      "fontFace": "{{heading_font}}",
+      "fontSize": 36,
+      "color":    "{{primary}}"
+    }
+  },
+  "visualStyles": {
+    "card": {
+      "*": {
+        "labels":         [{"properties": {"color": {"solid": {"color": "{{primary}}"}}, "fontSize": {"expr": {"Literal": {"Value": "36D"}}}}}],
+        "categoryLabels": [{"properties": {"color": {"solid": {"color": "{{text}}"}}, "fontSize": {"expr": {"Literal": {"Value": "12D"}}}}}],
+        "background":     [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}, "color": {"solid": {"color": "{{background}}"}}}}]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "lineStyles": [{"properties": {"strokeWidth": {"expr": {"Literal": {"Value": "2D"}}}}}]
+      }
+    },
+    "clusteredBarChart": {
+      "*": {
+        "dataPoint": [{"properties": {"defaultColor": {"solid": {"color": "{{primary}}"}}}}]
+      }
+    },
+    "clusteredColumnChart": {
+      "*": {
+        "dataPoint": [{"properties": {"defaultColor": {"solid": {"color": "{{primary}}"}}}}]
+      }
+    },
+    "donutChart": {
+      "*": {
+        "legend": [{"properties": {"position": {"expr": {"Literal": {"Value": "'Right'"}}}}}]
+      }
+    },
+    "tableEx": {
+      "*": {
+        "grid":           [{"properties": {"gridHorizontal": {"expr": {"Literal": {"Value": "true"}}}, "gridHorizontalColor": {"solid": {"color": "{{neutral}}"}}}}],
+        "columnHeaders":  [{"properties": {"backColor": {"solid": {"color": "{{primary}}"}}, "fontColor": {"solid": {"color": "#FFFFFF"}}}}]
+      }
+    },
+    "slicer": {
+      "*": {
+        "header": [{"properties": {"fontColor": {"solid": {"color": "{{primary}}"}}}}],
+        "items":  [{"properties": {"fontColor": {"solid": {"color": "{{text}}"}}}}]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{"properties": {"color": {"solid": {"color": "{{background}}"}}, "transparency": {"expr": {"Literal": {"Value": "0D"}}}}}]
+      }
+    }
+  }
+}
