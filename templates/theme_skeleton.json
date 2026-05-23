@@ -47,7 +47,8 @@
       "*": {
         "labels":         [{"properties": {"color": {"solid": {"color": "{{primary}}"}}, "fontSize": {"expr": {"Literal": {"Value": "36D"}}}}}],
         "categoryLabels": [{"properties": {"color": {"solid": {"color": "{{text}}"}}, "fontSize": {"expr": {"Literal": {"Value": "12D"}}}}}],
-        "background":     [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}, "color": {"solid": {"color": "{{background}}"}}}}]
+        "background":     [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}, "color": {"solid": {"color": "{{background}}"}}}}],
+        "border":         [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}, "color": {"solid": {"color": "{{neutral}}"}}, "radius": {"expr": {"Literal": {"Value": "4D"}}}}}]
       }
     },
     "lineChart": {

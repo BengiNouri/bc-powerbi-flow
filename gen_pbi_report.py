@@ -124,6 +124,11 @@ def make_textbox(text: str, x: int, y: int, w: int, h: int = 60, size: int = 24,
     }
 
 
+def _no_auto_title() -> dict:
+    """Force-disable PBI's auto-generated chart title. We emit titles via textboxes instead."""
+    return {"title": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}]}
+
+
 def make_chart(visual_type: str, name_suffix: str, category: dict, values: list[dict],
                x: int, y: int, w: int, h: int, title: str = None) -> dict:
     projections_cat = [category]
@@ -138,16 +143,16 @@ def make_chart(visual_type: str, name_suffix: str, category: dict, values: list[
         },
         "drillFilterOtherVisuals": True,
     }
-    if title:
-        visual["objects"] = {
-            "title": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}, "text": {"expr": {"Literal": {"Value": f"'{title}'"}}}}}]
-        }
-    return {
+    visual["objects"] = _no_auto_title()
+    result = {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"{visual_type}_{name_suffix}_{x}_{y}"),
         "position": {"x": x, "y": y, "z": 0, "height": h, "width": w, "tabOrder": 0},
         "visual": visual,
     }
+    if title:
+        result["_label"] = title
+    return result
 
 
 def make_donut(name_suffix: str, category: dict, value: dict, x: int, y: int, w: int, h: int, title: str = None) -> dict:
@@ -161,15 +166,32 @@ def make_donut(name_suffix: str, category: dict, value: dict, x: int, y: int, w:
         },
         "drillFilterOtherVisuals": True,
     }
-    if title:
-        visual["objects"] = {
-            "title": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}, "text": {"expr": {"Literal": {"Value": f"'{title}'"}}}}}]
-        }
-    return {
+    visual["objects"] = _no_auto_title()
+    result = {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"donut_{name_suffix}_{x}_{y}"),
         "position": {"x": x, "y": y, "z": 0, "height": h, "width": w, "tabOrder": 0},
         "visual": visual,
+    }
+    if title:
+        result["_label"] = title
+    return result
+
+
+def make_image(image_name: str, x: int, y: int, w: int, h: int) -> dict:
+    """Logo / static image visual. image_name is the file name inside Report/StaticResources/RegisteredResources/."""
+    return {
+        "$schema": SCHEMA_VISUAL,
+        "name": hex_id(f"image_{image_name}_{x}_{y}"),
+        "position": {"x": x, "y": y, "z": 0, "height": h, "width": w, "tabOrder": 0},
+        "visual": {
+            "visualType": "image",
+            "objects": {
+                "general": [{"properties": {"imageUrl": {"image": {"name": image_name, "url": image_name}}}}],
+                "imageScaling": [{"properties": {"imageScalingType": {"expr": {"Literal": {"Value": "'Fit'"}}}}}],
+            },
+            "drillFilterOtherVisuals": True,
+        },
     }
 
 
@@ -204,16 +226,16 @@ def make_table(name_suffix: str, fields: list[dict], x: int, y: int, w: int, h: 
         },
         "drillFilterOtherVisuals": True,
     }
-    if title:
-        visual["objects"] = {
-            "title": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}, "text": {"expr": {"Literal": {"Value": f"'{title}'"}}}}}]
-        }
-    return {
+    visual["objects"] = _no_auto_title()
+    result = {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"table_{name_suffix}_{x}_{y}"),
         "position": {"x": x, "y": y, "z": 0, "height": h, "width": w, "tabOrder": 0},
         "visual": visual,
     }
+    if title:
+        result["_label"] = title
+    return result
 
 
 # ─── PAGE DEFINITIONS ──────────────────────────────────────
@@ -295,27 +317,71 @@ def _top_kpis_for_exec() -> list[tuple[str, str]]:
     ]
 
 
+# Right-sidebar slicer (240px wide). Content area shrinks accordingly.
+SIDEBAR_W = 0  # 0 = no sidebar. Updated by main() based on decisions.yaml
+CONTENT_W = 1280
+
 # KPI card widths for 5 cards
 KPI_W, KPI_H, KPI_Y = 228, 110, 70
 KPI_LAST_W = 248
 CONTENT_Y = 200
 CONTENT_H = 490
+CHART_TITLE_H = 28
+
+
+def labeled(label: str, chart: dict) -> list[dict]:
+    """Emit [title textbox, chart] pair, shifting chart down 30px so label sits above.
+    The chart's height is reduced by 30 to keep within original bounds."""
+    pos = chart["position"]
+    x, y, w = pos["x"], pos["y"], pos["width"]
+    title_box = make_textbox(label, x, y, w, CHART_TITLE_H - 4, size=12)
+    chart["position"]["y"] = y + CHART_TITLE_H
+    chart["position"]["height"] = max(80, pos["height"] - CHART_TITLE_H)
+    return [title_box, chart]
+
+
+KPI_TARGET_MAP = {
+    "Revenue":                "Revenue vs Target %",
+    "Pipeline Value":         "Pipeline vs Target %",
+    "Gross Margin":           "Margin vs Target %",
+    "Total Tickets":          "Tickets vs Target",
+    "Avg Satisfaction Rating": None,  # no target defined
+}
 
 
 def kpi_row(measures: list[tuple[str, str]]) -> list[dict]:
-    """measures: list of (measure_name, label). x positions: 20,268,516,764,1012"""
+    """measures: list of (measure_name, label). x positions: 20,268,516,764,1012.
+
+    Emits 2 visuals per slot when a vs-target measure exists:
+      - the main KPI card (118px high)
+      - a small textbox below showing vs-target % (28px high)
+    Otherwise emits just the card."""
     xs = [20, 268, 516, 764, 1012]
-    cards = []
+    show_target = DECISIONS.get("kpi_cards", {}).get("show_target", False)
+    out: list[dict] = []
     for i, (m, label) in enumerate(measures[:5]):
         w = KPI_LAST_W if i == 4 else KPI_W
-        cards.append(make_card(m, xs[i], KPI_Y, w, KPI_H, label))
-    return cards
+        x = xs[i]
+        if show_target and KPI_TARGET_MAP.get(m):
+            # Stacked: card (top 80px) + vs-target card (bottom 28px)
+            out.append(make_card(m, x, KPI_Y, w, KPI_H - 30, label))
+            out.append(make_card(KPI_TARGET_MAP[m], x, KPI_Y + KPI_H - 28, w, 26, "vs Target"))
+        else:
+            out.append(make_card(m, x, KPI_Y, w, KPI_H, label))
+    return out
 
 
 def page_exec() -> list[dict]:
     visuals = []
-    # title — uses client name from design_decisions.yaml
-    visuals.append(make_textbox(f"{CLIENT_NAME} — Executive Dashboard", 20, 10, 1240, 48, size=24))
+    # Logo top-left (if available)
+    logo_path = DECISIONS.get("logo", {}).get("path_light")
+    if logo_path and (ROOT / logo_path).exists():
+        visuals.append(make_image("Logo", 20, 10, 140, 48))
+        title_x = 180
+    else:
+        title_x = 20
+    # title — uses client name from design_decisions.yaml (reserve right side for global slicer)
+    visuals.append(make_textbox(f"{CLIENT_NAME} — Executive Dashboard", title_x, 10, 1080 - title_x, 48, size=24))
     # KPIs — top 5 from design_decisions.yaml
     visuals += kpi_row(_top_kpis_for_exec())
     # Revenue by month (line chart)
@@ -654,8 +720,28 @@ def main():
         }
         (page_dir / "page.json").write_text(json.dumps(page_json, indent=2))
 
-        # visuals
-        visuals = PAGE_BUILDERS[pdef["key"]]()
+        # visuals — split any visual with _label into [title textbox, shifted chart]
+        raw = PAGE_BUILDERS[pdef["key"]]()
+        visuals: list[dict] = []
+        for v in raw:
+            if v.get("_label"):
+                label = v.pop("_label")
+                pos = v["position"]
+                x, y, w = pos["x"], pos["y"], pos["width"]
+                visuals.append(make_textbox(label, x, y, w, CHART_TITLE_H - 4, size=12))
+                pos["y"] = y + CHART_TITLE_H
+                pos["height"] = max(80, pos["height"] - CHART_TITLE_H)
+                visuals.append(v)
+            else:
+                visuals.append(v)
+        # Global slicer (top-right corner) — from design_decisions.yaml
+        global_slicer = DECISIONS.get("slicers", {}).get("global", {})
+        if global_slicer.get("enabled"):
+            try:
+                tbl, col = global_slicer["field"].split(".", 1)
+                visuals.append(make_slicer(column_field(tbl, col), 1100, 10, 160, 48))
+            except (KeyError, ValueError):
+                pass
         vis_dir = page_dir / "visuals"
         vis_dir.mkdir(exist_ok=True)
         for v in visuals:

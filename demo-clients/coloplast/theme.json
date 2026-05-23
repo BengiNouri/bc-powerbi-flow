@@ -98,6 +98,31 @@
               }
             }
           }
+        ],
+        "border": [
+          {
+            "properties": {
+              "show": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              },
+              "color": {
+                "solid": {
+                  "color": "#9CA3AF"
+                }
+              },
+              "radius": {
+                "expr": {
+                  "Literal": {
+                    "Value": "4D"
+                  }
+                }
+              }
+            }
+          }
         ]
       }
     },
