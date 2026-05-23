@@ -376,6 +376,10 @@ The full list of skills, MCP servers, and reference repos we lean on:
 
 These override default model behaviour. They are non-negotiable.
 
+### MUST READ for PBI/Fabric work: `docs/PBI_PATTERNS.md`
+
+Tested DO/DON'T patterns for DAX format strings, visual.json structure, theme.visualStyles, and PBIP persistence. **Consult this before generating any new measure or visual.** Each entry was verified in PBI Desktop; using an untested pattern across 100 visuals = 100 broken visuals.
+
 ---
 
 ## Files in this repo (canonical layout)
