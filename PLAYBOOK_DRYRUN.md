@@ -194,12 +194,12 @@ clients until drivers ship.
 ## Summary of gaps to close before next client
 
 **P0 — Blocks most engagements (do first):**
-- [ ] `extract_bc_oauth.py` template
-- [ ] `extract_hubspot.py` template
-- [ ] Multi-source scan merge (3-run workaround documented for now)
-- [ ] Split `transform_full.py` into `transform_lib.py` + thin client-specific file
-- [ ] `gen_supabase_ddl.py` to generate DDL from gold parquets
-- [ ] `init_client.py` to scaffold new client folder + replace placeholders
+- [x] `extract_bc_oauth.py` template — done via `scan_source.py` OAuth driver (commit c1f1246)
+- [x] `extract_hubspot.py` template — done via `scan_source.scan_hubspot()` (commit c1f1246)
+- [x] Multi-source scan merge — `scan_all.py` + `sources.yaml.example`
+- [x] Split `transform_full.py` into `transform_lib.py` + `transform_demo.py` exemplar
+- [x] `gen_supabase_ddl.py` to generate DDL from gold parquets
+- [x] `init_client.sh` to scaffold new client folder + replace placeholders (commit c1f1246)
 
 **P1 — Quality improvements:**
 - [ ] `dax_patterns.md` measure cookbook

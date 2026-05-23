@@ -1,0 +1,27 @@
+# Multi-source scan config — copy to sources.yaml and edit per client.
+#
+# Each entry is one source. scan_all.py loops over them, runs scan_source
+# with the right SOURCE_TYPE + env keys, and merges results into
+# source_schema.{json,md}.
+#
+# Available driver types (must match scan_source.DRIVERS):
+#   postgres | mssql | bc_odata | bc | hubspot | csv_folder
+
+sources:
+  - name: bc
+    type: bc_odata
+    env:
+      BC_BASE_URL: "https://api.businesscentral.dynamics.com/v2.0/<tenant>/<env>/ODataV4/Company('<company>')"
+      BC_TENANT_ID: "<azure_ad_tenant_guid>"
+      BC_CLIENT_ID: "<app_registration_client_id>"
+      BC_CLIENT_SECRET: "<app_registration_secret>"
+
+  - name: crm
+    type: hubspot
+    env:
+      HUBSPOT_TOKEN: "pat-eu1-<token>"
+
+  - name: marketing
+    type: csv_folder
+    env:
+      CSV_FOLDER: "./input/mailchimp-exports"
