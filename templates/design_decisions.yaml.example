@@ -1,0 +1,131 @@
+# Captured design decisions — Phase 0d output
+# Save as output/branding/design_decisions.yaml after the brainstorming session.
+# gen_pbi_report.py reads this to drive visual generation.
+
+client_name: "Nordic Steel"
+language: "da-DK"               # da-DK | en-US
+locale_decimal: "."             # "." for 1.234,56 ; "," for 1,234.56
+currency_suffix: "kr"           # kr | DKK | EUR | USD
+
+# ─── COLOURS (overrides from Phase 0c auto-extract) ───────────────
+colors:
+  primary:    "#0E3A5F"
+  secondary:  "#C8A14A"
+  accent:     "#F2F2F2"
+  success:    "#3FA34D"
+  warning:    "#E67E22"
+  danger:     "#C8102E"
+  background: "#FFFFFF"          # FFFFFF for light, #0E1A2B for dark
+  text:       "#1A1A1A"
+
+# ─── TYPOGRAPHY ───────────────────────────────────────────────────
+typography:
+  heading_font: "Inter"
+  body_font:    "Inter"
+  sizes:
+    page_title:    24            # 20 | 24 | 32
+    kpi_label:     12
+    kpi_callout:   36            # 28 | 36 | 48
+    section_title: 16
+    chart_label:   11
+    table_header:  12
+    table_cell:    11
+  bold_kpi_label:    false
+  bold_kpi_number:   true
+
+# ─── LOGO ─────────────────────────────────────────────────────────
+logo:
+  path_light: "demo-clients/nordicsteel/logo.png"
+  path_dark:  null                # SVG / PNG with white logo, for dark backgrounds
+  position:   "top-left"          # top-left | top-right | center | watermark
+  width_px:   140
+  on_every_page: false
+
+# ─── SLICERS ──────────────────────────────────────────────────────
+slicers:
+  global:
+    enabled: true
+    field: "gold_dim_date.year"
+    style: "dropdown"
+    position: "top-right"
+  per_page:
+    page_exec:
+      - { field: "gold_dim_date.year", style: "dropdown" }
+    page_pipeline:
+      - { field: "gold_dim_customer.country_group", style: "dropdown" }
+      - { field: "gold_fact_pipeline.deal_status",  style: "buttons" }
+    page_marketing:
+      - { field: "gold_dim_campaign.campaign_type", style: "dropdown" }
+    page_finance:
+      - { field: "gold_dim_date.year",        style: "dropdown" }
+      - { field: "gold_fact_budget.department", style: "dropdown" }
+    page_hr:
+      - { field: "gold_dim_employee.department", style: "dropdown" }
+    page_csat:
+      - { field: "gold_fact_tickets.priority", style: "buttons" }
+
+# ─── PAGES ────────────────────────────────────────────────────────
+pages:
+  # Set enabled=false to skip a page; reorder array to change page order.
+  - key: "exec"
+    enabled: true
+    display_name: "1. Executive Dashboard"
+    top_kpis:
+      - measure: "Revenue"
+        label:   "Omsætning"      # localised label
+      - measure: "Gross Margin"
+        label:   "DB-margin"
+      - measure: "Pipeline Value"
+        label:   "Pipeline"
+      - measure: "NPS Score"
+        label:   "NPS"
+      - measure: "Total Headcount"
+        label:   "Medarbejdere"
+  - key: "pipeline"
+    enabled: true
+    display_name: "2. Pipeline & CRM"
+  - key: "marketing"
+    enabled: true
+    display_name: "3. Marketing & Web"
+  - key: "finance"
+    enabled: true
+    display_name: "4. Finance & Budget"
+  - key: "hr"
+    enabled: true
+    display_name: "5. HR & People"
+  - key: "csat"
+    enabled: true
+    display_name: "6. NPS & Support"
+
+navigation:
+  style: "tabs_bottom"            # tabs_bottom | top_nav | side_nav
+
+# ─── KPI CARD STYLE ───────────────────────────────────────────────
+kpi_cards:
+  style:        "minimal"         # minimal | framed | coloured
+  show_trend:   false             # arrow vs prior period
+  show_target:  false             # show target value below number
+
+# ─── CHARTS ───────────────────────────────────────────────────────
+charts:
+  default_single_series_color: "primary"   # primary | secondary
+  line_thickness: 2                        # 1 | 2 | 3
+  bar_data_labels: "on_hover"              # always | on_hover | top_3
+  category_chart_type: "donut"             # donut | pie
+  rich_tooltips: false
+
+# ─── INTERACTIVITY ────────────────────────────────────────────────
+interactivity:
+  cross_filter: true
+  drill_through_pages: []                  # e.g. ["customer_detail"]
+  bookmarks: false
+  pdf_export_button: false
+
+# ─── ACCESSIBILITY ────────────────────────────────────────────────
+accessibility:
+  wcag_level: "AA"                         # AA (default) | AAA
+  alt_text_required: true
+
+# ─── CLIENT-SPECIFIC EXCLUSIONS ───────────────────────────────────
+avoid_visuals: []                          # e.g. ["pieChart", "wordCloud"]
+preserve_visuals: []                       # e.g. ["sales_by_region_map"] if migrating from old report

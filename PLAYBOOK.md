@@ -73,8 +73,13 @@ Before phase 0a, ASK ME these 4 things in one message (use AskUserQuestion):
        postgres | mssql | bc_odata | hubspot | csv_folder
   4. Fabric workspace ID + Lakehouse ID (paste both)
 
-After I answer, write them into .env, then propose the 8-phase plan with
-verify commands and wait for my approval before Phase 0a.
+After I answer, write them into .env, then propose the 9-phase plan
+(0a / 0b / 0c / 0d / 1-7) with verify commands and wait for my approval
+before Phase 0a.
+
+Phase 0d is a live design brainstorming session with the client —
+invoke superpowers:brainstorming, walk through templates/design_questionnaire.md
+one question at a time, and capture answers into design_decisions.yaml.
 
 Rules of engagement (in addition to the playbook):
 1. Think before coding. Surface assumptions. If a step has two reasonable paths,
@@ -156,7 +161,38 @@ Steps:
 
 ⚠️ **Do not proceed to Phase 1 without client design sign-off** — rebranding after the report is built means re-running Phases 5 & 6.
 
-**Iteration (if client returns layout feedback, not just hex codes):** invoke `superpowers:brainstorming` skill with the feedback as input to revise `report_spec.yaml`; then re-run `gen_pbi_report.py` in Phase 6.
+**Iteration (if client returns layout feedback, not just hex codes):** invoke `superpowers:brainstorming` skill with the feedback as input to revise `design_decisions.yaml`; then re-run `gen_pbi_report.py` in Phase 6.
+
+### Phase 0d — Design brainstorming with client (45-60 min live)
+
+**Goal:** Pin down every visual decision (beyond just colours) so Phase 6 has a
+complete spec to build from. **This is a real conversation with the client**, driven
+by Claude using `superpowers:brainstorming`.
+
+**Pre-flight:**
+- Phase 0c artefacts in place (`brand_assets.json`, `theme.json`, `design_brief.md`)
+- Client has reviewed `design_brief.md` and confirmed/corrected the brand basics
+- 45-60 min booked with client's design/marketing/operations contact
+
+**Steps:**
+
+1. Open `templates/design_questionnaire.md` together with the client
+2. Claude invokes `superpowers:brainstorming`:
+   - One question at a time (40 questions, ~1 min each)
+   - For each multi-choice question, list 2-3 options + recommendation
+   - For open questions, ask follow-ups when the answer is vague
+3. After each major section (colours / typography / logos / slicers / pages / charts /
+   KPI cards / language / interactivity), summarise back what was decided and confirm
+4. Capture all answers into `output/branding/design_decisions.yaml` (see
+   `templates/design_decisions.yaml.example` for schema)
+5. Re-render `design_brief.md` with the new decisions and send to client for written sign-off
+
+**Verify:**
+- `output/branding/design_decisions.yaml` exists and validates against the schema
+- Every page in the `pages` array has an `enabled` field and `top_kpis` (for the exec page)
+- Client signs off in writing — "yes, build this design"
+
+⚠️ **Phase 6 (report) is driven by `design_decisions.yaml`.** Don't proceed past 0d without it. Building first and re-skinning later means rewriting all 62 visuals.
 
 ### Phase 1 — Synthetic / Bronze (30 min, skip if real data ready)
 

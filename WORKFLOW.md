@@ -180,7 +180,7 @@ In this WORKFLOW we just note which skills + agents Claude should invoke at each
 | 0b — Model design | `superpowers:brainstorming` + `engineering:architecture` | Star schema choices |
 | 0b — DAX cookbook | `data:sql-queries` (DAX is SQL-adjacent) | Measure templates |
 | 0c — Brand | `extract_brand.py`, `gen_pbi_theme.py`, `gen_design_brief.py` | Auto-brand |
-| 0c — Iteration | `superpowers:brainstorming` | If client returns design feedback |
+| **0d — Design brainstorm** | **`superpowers:brainstorming` with client (live)** | **Refine every visual decision: colours / fonts / sizes / logos / slicers / pages / charts / KPIs → `design_decisions.yaml`** |
 | 1 — Bronze ingestion | `superpowers:test-driven-development` + `tdd-guide` agent | Tests on extract code |
 | 1 — Code review | `python-reviewer` agent | Each Python file before commit |
 | 2 — Silver/Gold | `tdd-guide` agent, `data:validate-data` | Transformations + data quality |
@@ -188,7 +188,7 @@ In this WORKFLOW we just note which skills + agents Claude should invoke at each
 | 4 — Fabric notebook | (no specific skill — paste-into-notebook + verify in Lakehouse) | Loading Delta tables |
 | 5 — Semantic model | **`powerbi-modeling-mcp`** (table_operations, relationship_operations, measure_operations, dax_query_operations) | Direct authoring in PBI Desktop |
 | 5 — DAX validation | `dax_query_operations.Execute` | Smoke-test every measure |
-| 6 — Report visuals | `gen_pbi_report.py` (writes `visual.json`) | Generate PBIP visuals |
+| 6 — Report visuals | `gen_pbi_report.py` (reads `design_decisions.yaml`, writes `visual.json`) | Generate PBIP visuals |
 | 6 — Visual schema | Reference `powerbi-claude` repo patterns | Correct queryRef format |
 | 6 — Accessibility | `design:accessibility-review` | WCAG final check before publish |
 | 7 — Publish | (manual via PBI Desktop → Publish) | Land in client's Fabric workspace |
