@@ -1,0 +1,28 @@
+{
+  "client_url": "https://www.coloplast.com",
+  "client_name": "Coloplast",
+  "logo_url": "https://www.coloplast.com/Static/img/logo.svg",
+  "logo_local": "demo-clients/coloplast/logo.svg",
+  "colors": {
+    "primary": "#003F5C",
+    "secondary": "#00A4E4",
+    "accent": "#E8F4FA",
+    "success": "#3FA34D",
+    "warning": "#E67E22",
+    "background": "#FFFFFF",
+    "text": "#1A1A1A"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter",
+    "fallback": "Segoe UI"
+  },
+  "language": "da-DK",
+  "confidence": {
+    "logo": "high",
+    "primary_color": "high",
+    "secondary_color": "high",
+    "fonts": "medium"
+  },
+  "warnings": []
+}

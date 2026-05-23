@@ -1,5 +1,8 @@
 """Generate PBI report pages and visuals as JSON in PBIP format.
 
+Reads design_decisions.yaml (if present) to drive page enablement, top KPIs,
+client name in titles, slicer placement, and chart style.
+
 Layout: 1280x720 canvas
   - Title row:   y=0,   h=60
   - KPI row:     y=70,  h=110
@@ -10,8 +13,26 @@ import json
 import shutil
 from pathlib import Path
 
-REPORT = Path("C:/Users/sajad/Project/cronus-dw/output/AkseDemoDW/AkseDemoDW_v2.Report")
+ROOT = Path(__file__).parent
+REPORT = ROOT / "output" / "AkseDemoDW" / "AkseDemoDW_v2.Report"
 PAGES = REPORT / "definition" / "pages"
+DECISIONS_FILE = ROOT / "output" / "branding" / "design_decisions.yaml"
+
+
+def load_decisions() -> dict:
+    """Load design_decisions.yaml if present, else return defaults."""
+    if not DECISIONS_FILE.exists():
+        return {"client_name": "Lodværket", "pages": [], "kpi_cards": {}, "slicers": {}}
+    try:
+        import yaml
+        return yaml.safe_load(DECISIONS_FILE.read_text(encoding="utf-8")) or {}
+    except ImportError:
+        # PyYAML not installed — fall back gracefully
+        return {"client_name": "Lodværket", "pages": [], "kpi_cards": {}, "slicers": {}}
+
+
+DECISIONS = load_decisions()
+CLIENT_NAME = DECISIONS.get("client_name", "Lodværket")
 
 SCHEMA_PAGE = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json"
 SCHEMA_VISUAL = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json"
@@ -200,7 +221,7 @@ PAGE_DEFS = [
     {
         "key": "exec",
         "displayName": "1. Executive Dashboard",
-        "title": "Lodværket Demo DW — Executive Dashboard",
+        "title": f"{CLIENT_NAME} — Executive Dashboard",
         "subtitle": "Cross-functional KPIs across Sales, Pipeline, Finance, HR and Customers",
     },
     {
@@ -233,7 +254,45 @@ PAGE_DEFS = [
         "title": "Customer Satisfaction & Support",
         "subtitle": "NPS score, ticket flow, SLA performance",
     },
+    {
+        "key": "quality",
+        "displayName": "7. Quality & Compliance",
+        "title": "Quality & Compliance",
+        "subtitle": "SLA performance, critical issues, ticket category trends",
+    },
 ]
+
+
+def _decisions_page(key: str) -> dict:
+    """Find this page's decision config in design_decisions.yaml (or empty dict)."""
+    for p in DECISIONS.get("pages", []):
+        if p.get("key") == key:
+            return p
+    return {}
+
+
+def _is_page_enabled(key: str) -> bool:
+    """Default true; YAML can disable individual pages."""
+    pages = DECISIONS.get("pages", [])
+    if not pages:
+        # No decisions yaml — only include the original 6 default pages
+        return key != "quality"
+    pd = _decisions_page(key)
+    return pd.get("enabled", False) if pd else False
+
+
+def _top_kpis_for_exec() -> list[tuple[str, str]]:
+    """Read Side 1 top KPIs from decisions, fall back to defaults."""
+    pd = _decisions_page("exec")
+    if pd and pd.get("top_kpis"):
+        return [(k["measure"], k.get("label", k["measure"])) for k in pd["top_kpis"][:5]]
+    return [
+        ("Revenue", "Revenue"),
+        ("Gross Margin", "Gross Margin"),
+        ("Pipeline Value", "Pipeline"),
+        ("NPS Score", "NPS"),
+        ("Total Headcount", "Headcount"),
+    ]
 
 
 # KPI card widths for 5 cards
@@ -255,16 +314,10 @@ def kpi_row(measures: list[tuple[str, str]]) -> list[dict]:
 
 def page_exec() -> list[dict]:
     visuals = []
-    # title
-    visuals.append(make_textbox("Lodværket Demo DW — Executive Dashboard", 20, 10, 1240, 48, size=24))
-    # KPIs
-    visuals += kpi_row([
-        ("Revenue", "Revenue"),
-        ("Gross Margin", "Gross Margin"),
-        ("Pipeline Value", "Pipeline"),
-        ("NPS Score", "NPS"),
-        ("Total Headcount", "Headcount"),
-    ])
+    # title — uses client name from design_decisions.yaml
+    visuals.append(make_textbox(f"{CLIENT_NAME} — Executive Dashboard", 20, 10, 1240, 48, size=24))
+    # KPIs — top 5 from design_decisions.yaml
+    visuals += kpi_row(_top_kpis_for_exec())
     # Revenue by month (line chart)
     visuals.append(make_chart(
         "lineChart", "rev_month",
@@ -522,13 +575,55 @@ def page_csat() -> list[dict]:
     return visuals
 
 
+def page_quality() -> list[dict]:
+    """Medical/regulatory Quality & Compliance page — built from gold_fact_tickets."""
+    visuals = [make_textbox("Quality & Compliance", 20, 10, 1240, 48, size=24)]
+    visuals += kpi_row([
+        ("Critical Tickets",       "Critical"),
+        ("SLA Met Rate",           "SLA Met"),
+        ("Avg Response Time Hours", "Avg Response"),
+        ("Resolution Rate",        "Resolution"),
+        ("Avg Resolution Days",    "Avg Days"),
+    ])
+    # Tickets by category over time
+    visuals.append(make_chart(
+        "lineChart", "tk_cat_month",
+        column_field("gold_dim_date", "year_month"),
+        [measure_field("_Measures", "Total Tickets")],
+        20, CONTENT_Y, 620, 240, "Tickets over Time",
+    ))
+    # SLA met by category
+    visuals.append(make_chart(
+        "clusteredBarChart", "sla_cat",
+        column_field("gold_fact_tickets", "category"),
+        [measure_field("_Measures", "SLA Met Rate")],
+        660, CONTENT_Y, 600, 240, "SLA Met Rate by Category",
+    ))
+    # Critical / Open ticket table
+    visuals.append(make_table(
+        "critical_tk",
+        [
+            column_field("gold_fact_tickets", "ticket_id"),
+            column_field("gold_fact_tickets", "company_name"),
+            column_field("gold_fact_tickets", "category"),
+            column_field("gold_fact_tickets", "priority"),
+            column_field("gold_fact_tickets", "status"),
+            column_field("gold_fact_tickets", "sla_met"),
+            measure_field("_Measures", "Avg Resolution Days"),
+        ],
+        20, CONTENT_Y + 250, 1240, 240, "Critical Issues",
+    ))
+    return visuals
+
+
 PAGE_BUILDERS = {
-    "exec": page_exec,
-    "pipeline": page_pipeline,
+    "exec":      page_exec,
+    "pipeline":  page_pipeline,
     "marketing": page_marketing,
-    "finance": page_finance,
-    "hr": page_hr,
-    "csat": page_csat,
+    "finance":   page_finance,
+    "hr":        page_hr,
+    "csat":      page_csat,
+    "quality":   page_quality,
 }
 
 
@@ -540,8 +635,9 @@ def main():
                 shutil.rmtree(p)
 
     page_hex_names = []
+    enabled_defs = [d for d in PAGE_DEFS if _is_page_enabled(d["key"])]
 
-    for pdef in PAGE_DEFS:
+    for pdef in enabled_defs:
         page_hex = hex_id(f"page_{pdef['key']}")
         page_hex_names.append(page_hex)
         page_dir = PAGES / page_hex
