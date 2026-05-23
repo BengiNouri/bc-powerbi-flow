@@ -196,6 +196,8 @@ def make_image(image_name: str, x: int, y: int, w: int, h: int) -> dict:
 
 
 def make_slicer(field: dict, x: int, y: int, w: int = 240, h: int = 70, title: str = None) -> dict:
+    """PBI slicer uses data role 'Field' (singular), not 'Values' like cards.
+    Using the wrong role gives 'Select or drag fields to populate visual'."""
     return {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"slicer_{field['queryRef']}_{x}_{y}"),
@@ -204,7 +206,7 @@ def make_slicer(field: dict, x: int, y: int, w: int = 240, h: int = 70, title: s
             "visualType": "slicer",
             "query": {
                 "queryState": {
-                    "Values": {"projections": [field]}
+                    "Field": {"projections": [field]}
                 }
             },
             "objects": {
@@ -411,34 +413,17 @@ def labeled(label: str, chart: dict) -> list[dict]:
     return [title_box, chart]
 
 
-KPI_TARGET_MAP = {
-    "Revenue":                "Revenue vs Target %",
-    "Pipeline Value":         "Pipeline vs Target %",
-    "Gross Margin":           "Margin vs Target %",
-    "Total Tickets":          "Tickets vs Target",
-    "Avg Satisfaction Rating": None,  # no target defined
-}
-
-
 def kpi_row(measures: list[tuple[str, str]]) -> list[dict]:
     """measures: list of (measure_name, label). x positions: 20,268,516,764,1012.
 
-    Emits 2 visuals per slot when a vs-target measure exists:
-      - the main KPI card (118px high)
-      - a small textbox below showing vs-target % (28px high)
-    Otherwise emits just the card."""
+    One clean 110px card per KPI. vs-Target / trend measures are better placed
+    in a Table visual on a separate page — stacking them under KPIs crushes
+    label hierarchy (see docs/PBI_PATTERNS.md)."""
     xs = [20, 268, 516, 764, 1012]
-    show_target = DECISIONS.get("kpi_cards", {}).get("show_target", False)
     out: list[dict] = []
     for i, (m, label) in enumerate(measures[:5]):
         w = KPI_LAST_W if i == 4 else KPI_W
-        x = xs[i]
-        if show_target and KPI_TARGET_MAP.get(m):
-            # Stacked: card (top 70px) + vs-target card (bottom 50px — large enough for PBI to render value+label)
-            out.append(make_card(m, x, KPI_Y, w, 70, label))
-            out.append(make_card(KPI_TARGET_MAP[m], x, KPI_Y + 75, w, 45, "vs Target"))
-        else:
-            out.append(make_card(m, x, KPI_Y, w, KPI_H, label))
+        out.append(make_card(m, xs[i], KPI_Y, w, KPI_H, label))
     return out
 
 

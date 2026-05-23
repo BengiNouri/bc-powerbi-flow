@@ -46,6 +46,25 @@ Then bind it as a separate visual or stack it next to the % card.
 
 ---
 
+## visual queryState roles — match the visual type
+
+Different visual types expect different role names in `query.queryState`:
+
+| visualType | Correct role | Wrong role gives |
+|---|---|---|
+| `card` | `Values` | (empty card) |
+| `slicer` | `Field` (singular!) | "Select or drag fields to populate visual" |
+| `lineChart` / `clusteredBarChart` / `clusteredColumnChart` | `Category` + `Y` | empty chart |
+| `donutChart` | `Category` + `Y` | empty donut |
+| `tableEx` | `Values` | empty table |
+| `matrix` | `Rows` + `Columns` + `Values` | empty matrix |
+| `image` | (no query) | n/a |
+| `textbox` | (no query) | n/a |
+
+❌ Common mistake: using `Values` for slicer (renders as empty visual asking for fields)
+
+---
+
 ## visual.json projections
 
 ### ✅ DO
