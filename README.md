@@ -1,7 +1,17 @@
-# Lodværket Demo DW
+# Lodværket BI Accelerator
 
 > Lodværket's reusable template for delivering data warehouse + Power BI projects to clients.
 > Goes from "BC + CRM + other systems" to "branded Power BI report on Fabric" in 1-2 weeks.
+
+## How to refer to this project
+
+| Context | Name | Example |
+|---|---|---|
+| Git / Claude sessions / technical | `bc-powerbi-flow` | *"Open the bc-powerbi-flow repo"* |
+| Internal Lodværket (standups, Slack, Notion) | **BI Flow** | *"BI Flow tager Nordic Steel den her uge"* |
+| Client-facing / sales / website | **Lodværket BI Accelerator** | *"We deliver the Lodværket BI Accelerator — branded Power BI in 1-2 weeks"* |
+
+Same project, three labels. Use the one that fits the audience.
 
 ## Start here
 
