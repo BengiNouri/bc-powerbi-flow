@@ -1,0 +1,28 @@
+{
+  "client_url": "https://www.lego.com",
+  "client_name": "LEGO",
+  "logo_url": "https://www.lego.com/cdn/cs/set/assets/blt03f2efb7d9b56b3a/LEGO_logo.svg",
+  "logo_local": "demo-clients/lego/logo.svg",
+  "colors": {
+    "primary": "#D01012",
+    "secondary": "#FFCF00",
+    "accent": "#006DB7",
+    "success": "#00AF4D",
+    "warning": "#FF8C00",
+    "background": "#FFFFFF",
+    "text": "#1A1A1A"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter",
+    "fallback": "Segoe UI"
+  },
+  "language": "da-DK",
+  "confidence": {
+    "logo": "high",
+    "primary_color": "high",
+    "secondary_color": "high",
+    "fonts": "low"
+  },
+  "warnings": []
+}

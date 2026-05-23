@@ -1,0 +1,28 @@
+{
+  "client_url": "https://www.lakridsbybulow.com",
+  "client_name": "Lakrids by Bülow",
+  "logo_url": "https://www.lakridsbybulow.com/static/logo.svg",
+  "logo_local": "demo-clients/lakrids-by-bulow/logo.svg",
+  "colors": {
+    "primary": "#000000",
+    "secondary": "#B8964D",
+    "accent": "#E8DCB8",
+    "success": "#3FA34D",
+    "warning": "#E67E22",
+    "background": "#FFFFFF",
+    "text": "#1A1A1A"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter",
+    "fallback": "Segoe UI"
+  },
+  "language": "da-DK",
+  "confidence": {
+    "logo": "high",
+    "primary_color": "high",
+    "secondary_color": "high",
+    "fonts": "low"
+  },
+  "warnings": []
+}

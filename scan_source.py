@@ -195,12 +195,36 @@ def scan_mssql() -> list[Table]:
     return tables
 
 
-def scan_bc_odata() -> list[Table]:
-    """Business Central OData v4 — list entities then sample each."""
+def _bc_session(base_url: str) -> tuple["requests.Session", dict]:
+    """Return a session + headers, using OAuth if BC_TENANT_ID is set, else Basic."""
     import requests
+    sess = requests.Session()
+    if os.environ.get("BC_TENANT_ID"):
+        # OAuth2 client credentials (BC SaaS)
+        token_url = f"https://login.microsoftonline.com/{os.environ['BC_TENANT_ID']}/oauth2/v2.0/token"
+        resp = requests.post(
+            token_url,
+            data={
+                "grant_type": "client_credentials",
+                "client_id": os.environ["BC_CLIENT_ID"],
+                "client_secret": os.environ["BC_CLIENT_SECRET"],
+                "scope": "https://api.businesscentral.dynamics.com/.default",
+            },
+            timeout=15,
+        )
+        resp.raise_for_status()
+        token = resp.json()["access_token"]
+        return sess, {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    # Fallback: Basic auth (on-prem BC)
+    sess.auth = (os.environ["BC_USER"], os.environ["BC_PASSWORD"])
+    return sess, {"Accept": "application/json"}
+
+
+def scan_bc_odata() -> list[Table]:
+    """Business Central OData v4 — auto-picks OAuth or Basic from env."""
     base = os.environ["BC_BASE_URL"].rstrip("/")
-    auth = (os.environ["BC_USER"], os.environ["BC_PASSWORD"])
-    r = requests.get(base, auth=auth, headers={"Accept": "application/json"})
+    sess, headers = _bc_session(base)
+    r = sess.get(base, headers=headers, timeout=20)
     r.raise_for_status()
     entities = [e["url"] for e in r.json().get("value", [])]
     tables: list[Table] = []
@@ -211,7 +235,7 @@ def scan_bc_odata() -> list[Table]:
             t.skip_reason = skip
             tables.append(t)
             continue
-        rr = requests.get(f"{base}/{ent}?$top={SAMPLE_ROWS}", auth=auth, headers={"Accept": "application/json"})
+        rr = sess.get(f"{base}/{ent}?$top={SAMPLE_ROWS}", headers=headers, timeout=20)
         if rr.status_code != 200:
             t.skip_reason = f"HTTP {rr.status_code}"
             tables.append(t)
@@ -221,10 +245,58 @@ def scan_bc_odata() -> list[Table]:
         if rows:
             for k, v in rows[0].items():
                 t.columns.append(Column(name=k, type=type(v).__name__, pk_hint=looks_like_pk(k)))
-        # Approximate count via $count
-        rc = requests.get(f"{base}/{ent}/$count", auth=auth)
-        if rc.status_code == 200 and rc.text.isdigit():
-            t.row_count = int(rc.text)
+        # Approximate count via $count (skip if --no-counts)
+        if not os.environ.get("SCAN_NO_COUNTS"):
+            rc = sess.get(f"{base}/{ent}/$count", headers=headers, timeout=30)
+            if rc.status_code == 200 and rc.text.isdigit():
+                t.row_count = int(rc.text)
+        tables.append(t)
+    return tables
+
+
+def scan_hubspot() -> list[Table]:
+    """HubSpot CRM via private app token (https://app.hubspot.com → Settings → Integrations → Private Apps)."""
+    import requests
+    token = os.environ["HUBSPOT_TOKEN"]
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    # Standard CRM objects worth scanning (extend if client uses custom objects)
+    objects = [
+        ("companies", "/crm/v3/objects/companies"),
+        ("contacts",  "/crm/v3/objects/contacts"),
+        ("deals",     "/crm/v3/objects/deals"),
+        ("tickets",   "/crm/v3/objects/tickets"),
+        ("pipelines", "/crm/v3/pipelines/deals"),
+        ("owners",    "/crm/v3/owners"),
+    ]
+    base = "https://api.hubapi.com"
+    tables: list[Table] = []
+    for name, path in objects:
+        t = Table(name=f"hubspot_{name}")
+        params = {"limit": SAMPLE_ROWS} if "/objects/" in path else {}
+        r = requests.get(f"{base}{path}", headers=headers, params=params, timeout=15)
+        if r.status_code != 200:
+            t.skip_reason = f"HTTP {r.status_code} — {r.text[:120]}"
+            tables.append(t)
+            continue
+        data = r.json()
+        # HubSpot returns {"results": [...]} for objects, [...] for pipelines/owners
+        rows = data.get("results", data if isinstance(data, list) else [])
+        t.sample = rows[:SAMPLE_ROWS]
+        # HubSpot rows nest most data under "properties"; flatten one level for column inference
+        if rows:
+            sample_row = {**rows[0].get("properties", {}), **{k: v for k, v in rows[0].items() if k != "properties"}}
+            for k, v in sample_row.items():
+                t.columns.append(Column(name=k, type=type(v).__name__, pk_hint=looks_like_pk(k)))
+        # Row count via /crm/v3/objects/<obj>/search with total — skip if SCAN_NO_COUNTS
+        if not os.environ.get("SCAN_NO_COUNTS") and "/objects/" in path:
+            rc = requests.post(
+                f"{base}{path}/search",
+                headers=headers,
+                json={"limit": 1},
+                timeout=20,
+            )
+            if rc.status_code == 200:
+                t.row_count = rc.json().get("total", 0)
         tables.append(t)
     return tables
 
@@ -245,11 +317,13 @@ def scan_csv_folder() -> list[Table]:
 
 
 DRIVERS = {
-    "postgres": scan_postgres,
-    "pg": scan_postgres,
-    "mssql": scan_mssql,
-    "bc_odata": scan_bc_odata,
-    "csv_folder": scan_csv_folder,
+    "postgres":    scan_postgres,
+    "pg":          scan_postgres,
+    "mssql":       scan_mssql,
+    "bc_odata":    scan_bc_odata,
+    "bc":          scan_bc_odata,
+    "hubspot":     scan_hubspot,
+    "csv_folder":  scan_csv_folder,
 }
 
 

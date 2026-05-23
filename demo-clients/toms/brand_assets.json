@@ -1,0 +1,28 @@
+{
+  "client_url": "https://www.toms.com",
+  "client_name": "Toms",
+  "logo_url": "https://www.toms.com/logo.svg",
+  "logo_local": "demo-clients/toms/logo.svg",
+  "colors": {
+    "primary": "#C8102E",
+    "secondary": "#7A1A2B",
+    "accent": "#F2DDC9",
+    "success": "#3FA34D",
+    "warning": "#E67E22",
+    "background": "#FFFFFF",
+    "text": "#1A1A1A"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter",
+    "fallback": "Segoe UI"
+  },
+  "language": "da-DK",
+  "confidence": {
+    "logo": "high",
+    "primary_color": "high",
+    "secondary_color": "medium",
+    "fonts": "low"
+  },
+  "warnings": []
+}

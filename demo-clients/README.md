@@ -17,9 +17,12 @@ Use these to:
 
 ## Current demo clients
 
-| Folder | Source URL | Notes |
-|---|---|---|
-| `vestas/` | https://www.vestas.com | Wind turbine manufacturer — fits B2B / pipeline / employees / industry KPIs perfectly. Strong navy + sky-blue brand. |
+| Folder | Source URL | Brand palette | Notes |
+|---|---|---|---|
+| `vestas/` | https://www.vestas.com | Navy `#0048AD` + sky `#00A0DC` | Wind turbines — fits B2B / pipeline / industry KPIs |
+| `toms/` | https://www.toms.com | Red `#C8102E` + burgundy `#7A1A2B` | Chocolate — fits FMCG / retail demos |
+| `lego/` | https://www.lego.com | Lego red `#D01012` + yellow `#FFCF00` | Iconic; great for retail / SKU-heavy demos |
+| `lakrids-by-bulow/` | https://www.lakridsbybulow.com | Black `#000000` + gold `#B8964D` | Premium / luxury feel; perfect for high-end FMCG |
 
 ## How to add a new demo client
 

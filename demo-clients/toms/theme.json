@@ -1,0 +1,255 @@
+{
+  "name": "Toms — Akse Demo DW",
+  "$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/master/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.137.json",
+  "dataColors": [
+    "#C8102E",
+    "#7A1A2B",
+    "#F2DDC9",
+    "#3FA34D",
+    "#E67E22",
+    "#F47C90",
+    "#25080D",
+    "#9CA3AF"
+  ],
+  "good": "#3FA34D",
+  "neutral": "#F2DDC9",
+  "bad": "#E67E22",
+  "background": "#FFFFFF",
+  "foreground": "#1A1A1A",
+  "tableAccent": "#C8102E",
+  "firstLevelElements": "#1A1A1A",
+  "secondLevelElements": "#C8102E",
+  "thirdLevelElements": "#9CA3AF",
+  "textClasses": {
+    "title": {
+      "fontFace": "Inter",
+      "fontSize": 24,
+      "color": "#C8102E"
+    },
+    "header": {
+      "fontFace": "Inter",
+      "fontSize": 16,
+      "color": "#1A1A1A"
+    },
+    "label": {
+      "fontFace": "Inter",
+      "fontSize": 12,
+      "color": "#1A1A1A"
+    },
+    "callout": {
+      "fontFace": "Inter",
+      "fontSize": 36,
+      "color": "#C8102E"
+    }
+  },
+  "visualStyles": {
+    "card": {
+      "*": {
+        "labels": [
+          {
+            "properties": {
+              "color": {
+                "solid": {
+                  "color": "#C8102E"
+                }
+              },
+              "fontSize": {
+                "expr": {
+                  "Literal": {
+                    "Value": "36D"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "categoryLabels": [
+          {
+            "properties": {
+              "color": {
+                "solid": {
+                  "color": "#1A1A1A"
+                }
+              },
+              "fontSize": {
+                "expr": {
+                  "Literal": {
+                    "Value": "12D"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "background": [
+          {
+            "properties": {
+              "show": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              },
+              "color": {
+                "solid": {
+                  "color": "#FFFFFF"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "lineStyles": [
+          {
+            "properties": {
+              "strokeWidth": {
+                "expr": {
+                  "Literal": {
+                    "Value": "2D"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "clusteredBarChart": {
+      "*": {
+        "dataPoint": [
+          {
+            "properties": {
+              "defaultColor": {
+                "solid": {
+                  "color": "#C8102E"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "clusteredColumnChart": {
+      "*": {
+        "dataPoint": [
+          {
+            "properties": {
+              "defaultColor": {
+                "solid": {
+                  "color": "#C8102E"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "donutChart": {
+      "*": {
+        "legend": [
+          {
+            "properties": {
+              "position": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Right'"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "tableEx": {
+      "*": {
+        "grid": [
+          {
+            "properties": {
+              "gridHorizontal": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              },
+              "gridHorizontalColor": {
+                "solid": {
+                  "color": "#9CA3AF"
+                }
+              }
+            }
+          }
+        ],
+        "columnHeaders": [
+          {
+            "properties": {
+              "backColor": {
+                "solid": {
+                  "color": "#C8102E"
+                }
+              },
+              "fontColor": {
+                "solid": {
+                  "color": "#FFFFFF"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "slicer": {
+      "*": {
+        "header": [
+          {
+            "properties": {
+              "fontColor": {
+                "solid": {
+                  "color": "#C8102E"
+                }
+              }
+            }
+          }
+        ],
+        "items": [
+          {
+            "properties": {
+              "fontColor": {
+                "solid": {
+                  "color": "#1A1A1A"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "properties": {
+              "color": {
+                "solid": {
+                  "color": "#FFFFFF"
+                }
+              },
+              "transparency": {
+                "expr": {
+                  "Literal": {
+                    "Value": "0D"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
