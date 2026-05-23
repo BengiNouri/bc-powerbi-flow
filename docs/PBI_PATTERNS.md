@@ -19,15 +19,17 @@
 | `#,##0 DKK` | `5,000,000 DKK` | DKK alt notation |
 | `0.0%` | `24.5%` | Percentages (input is fraction 0.245) |
 | `+0;-0;0` | `+5`, `-3`, `0` | Signed integers with explicit + |
-| `[Green]+0.0%;[Red]-0.0%;0.0%` | `+5.2%` green / `-3.1%` red | **Color-coded deltas** |
-| `[Red]+#;[Green]#;0` | `+23` red / `15` green | Inverted-good metric (e.g. tickets — over target is bad) |
+| `+0.0%;-0.0%;0.0%` | `+5.2%` / `-3.1%` | Plain signed percentage (works in **all** visual types) |
+| `+#;-#;0` | `+23` / `-3` | Plain signed integer |
+| `[Green]+0.0%;[Red]-0.0%;0.0%` (Tables/Matrix only!) | green `+5.2%` / red `-3.1%` | **Color tokens only render in Table & Matrix visuals, NOT in Card visuals** — cards show the format string as raw text |
 
 ### ❌ DON'T
 
 | Format string | Why it fails |
 |---|---|
-| `[Green]▲ 0.0%;[Red]▼ 0.0%;0.0%` | **Unicode arrows ▲▼ break PBI's format parser** — entire format string renders as literal text (`-[gryy%m...`) |
-| `[Color #003F5C]0.0%` | Hex color codes not supported — only named colors |
+| `[Green]+0.0%` **in a Card visual** | **Card visuals don't apply color tokens — they render the format string as literal text** (`-[gryy%m...`). Use plain `+0.0%;-0.0%;0.0%` on cards. Color works only in Table/Matrix. |
+| `[Green]▲ 0.0%;[Red]▼ 0.0%;0.0%` | Even in Table/Matrix, Unicode arrows ▲▼ may break PBI's format parser depending on locale. Stick to named colors + plain ASCII. |
+| `[Color #003F5C]0.0%` | Hex color codes not supported — only the 8 named colors |
 | `"text" 0.0%` | String literals via double-quotes don't render in measure formats |
 | `\n` linebreaks | Format strings are single-line only |
 
@@ -150,8 +152,20 @@ Having both can cause PBI to use the wrong one.
 
 ## Lessons learned (session 2026-05-23)
 
-- We shipped `[Green]▲ 0.0%` formats for 5 measures × 1 page × visible to client = **5 broken cards on screenshot**. Root cause: arrogant assumption that PBI parses Unicode in format strings. Cost: 30 min of rework + trust damage. Fix: removed arrows, kept only named colors.
-- We used `image` visualType for logos before validating it could bind RegisteredResources. Got "Select image in the format pane under Style" placeholder. Cost: removed image visual entirely. Fix: use textbox with bold client name as logo header.
-- We added 10 measures via MCP that were lost when PBI Desktop closed without Save. Cost: had to re-add and write TMDL to disk manually. Fix: this pattern doc + "always export TMDL after measure changes" rule.
+- **Iteration 1 (wrong):** shipped `[Green]▲ 0.0%` formats. Assumed Unicode arrows were the problem when cards showed gibberish.
+- **Iteration 2 (wrong):** removed arrows, kept colors `[Green]+0.0%`. STILL broken — same gibberish.
+- **Iteration 3 (correct):** removed colors entirely. Plain `+0.0%;-0.0%;0.0%` finally renders.
+- **Root cause:** PBI Card visuals don't apply color tokens in formatStrings — only Table/Matrix do. Cards render the entire format string as literal text when colors are present.
+- **Cost:** 3 iterations × 5 measures × rerun-pipeline × user time = ~90 min lost + 2 broken screenshots sent to user.
+
+**The general lesson:** When a pattern fails, don't tweak it twice in the same direction. Step back and ask "what assumption is wrong?" — in this case, "PBI parses color tokens everywhere" was wrong. It only parses them in some visual types.
+
+**The Karpathy lesson:** "Think before coding. State your assumptions explicitly. If uncertain, ask." I assumed Card visuals support colored format strings. I never validated that assumption against PBI docs OR a minimal test. Validating one card by hand in PBI Desktop before generating 5 would have caught this in 2 minutes instead of 90.
+
+**The systems lesson:** Add `verify_one_card_renders.py` to the playbook BEFORE bulk-generating cards. The test should literally open PBI Desktop and screenshot a single card with the new format string, and fail loudly if it doesn't show the expected value.
+
+Other lessons from this session:
+- Image visualType for logos: didn't validate RegisteredResources binding first → removed entirely, used textbox
+- MCP-added measures lost on PBI close without save → export TMDL to disk after every MCP measure change
 
 **Each lesson cost time. Each could have been avoided by validating one minimal example first.**
