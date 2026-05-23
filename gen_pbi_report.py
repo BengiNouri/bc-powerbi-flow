@@ -434,9 +434,9 @@ def kpi_row(measures: list[tuple[str, str]]) -> list[dict]:
         w = KPI_LAST_W if i == 4 else KPI_W
         x = xs[i]
         if show_target and KPI_TARGET_MAP.get(m):
-            # Stacked: card (top 80px) + vs-target card (bottom 28px)
-            out.append(make_card(m, x, KPI_Y, w, KPI_H - 30, label))
-            out.append(make_card(KPI_TARGET_MAP[m], x, KPI_Y + KPI_H - 28, w, 26, "vs Target"))
+            # Stacked: card (top 70px) + vs-target card (bottom 50px — large enough for PBI to render value+label)
+            out.append(make_card(m, x, KPI_Y, w, 70, label))
+            out.append(make_card(KPI_TARGET_MAP[m], x, KPI_Y + 75, w, 45, "vs Target"))
         else:
             out.append(make_card(m, x, KPI_Y, w, KPI_H, label))
     return out
@@ -444,15 +444,8 @@ def kpi_row(measures: list[tuple[str, str]]) -> list[dict]:
 
 def page_exec() -> list[dict]:
     visuals = []
-    # Logo top-left (if available)
-    logo_path = DECISIONS.get("logo", {}).get("path_light")
-    if logo_path and (ROOT / logo_path).exists():
-        visuals.append(make_image("Logo", 20, 10, 140, 48))
-        title_x = 180
-    else:
-        title_x = 20
-    # title — uses client name from design_decisions.yaml (reserve right side for global slicer)
-    visuals.append(make_textbox(f"{CLIENT_NAME} — Executive Dashboard", title_x, 10, 1080 - title_x, 48, size=24))
+    # title — client name in brand-primary bold acts as "logo" + dashboard label
+    visuals.append(make_textbox(f"{CLIENT_NAME} — Executive Dashboard", 20, 10, 1080, 48, size=24))
     # KPIs — top 5 from design_decisions.yaml
     visuals += kpi_row(_top_kpis_for_exec())
     # Revenue by month (line chart)

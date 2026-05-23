@@ -53,26 +53,31 @@
     },
     "lineChart": {
       "*": {
+        "title": [{"show": false}],
         "lineStyles": [{"properties": {"strokeWidth": {"expr": {"Literal": {"Value": "2D"}}}}}]
       }
     },
     "clusteredBarChart": {
       "*": {
+        "title": [{"show": false}],
         "dataPoint": [{"properties": {"defaultColor": {"solid": {"color": "{{primary}}"}}}}]
       }
     },
     "clusteredColumnChart": {
       "*": {
+        "title": [{"show": false}],
         "dataPoint": [{"properties": {"defaultColor": {"solid": {"color": "{{primary}}"}}}}]
       }
     },
     "donutChart": {
       "*": {
+        "title": [{"show": false}],
         "legend": [{"properties": {"position": {"expr": {"Literal": {"Value": "'Right'"}}}}}]
       }
     },
     "tableEx": {
       "*": {
+        "title":          [{"show": false}],
         "grid":           [{"properties": {"gridHorizontal": {"expr": {"Literal": {"Value": "true"}}}, "gridHorizontalColor": {"solid": {"color": "{{neutral}}"}}}}],
         "columnHeaders":  [{"properties": {"backColor": {"solid": {"color": "{{primary}}"}}, "fontColor": {"solid": {"color": "#FFFFFF"}}}}]
       }
