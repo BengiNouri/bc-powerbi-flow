@@ -1,4 +1,4 @@
-# Akse — Master client workflow
+# Lodværket — Master client workflow
 
 > **This is the canonical, end-to-end flow from first contact to delivered Power BI report.**
 > Every new Claude Code session should start by reading this file. It links out to
@@ -199,7 +199,7 @@ In this WORKFLOW we just note which skills + agents Claude should invoke at each
 **Orchestration prompt for Phase E** (use this verbatim — already in PLAYBOOK.md):
 
 ```
-You are building a Power BI data warehouse for an Akse client.
+You are building a Power BI data warehouse for a Lodværket client.
 
 Read WORKFLOW.md, CREDENTIALS.md, and PLAYBOOK.md in full before doing anything else.
 

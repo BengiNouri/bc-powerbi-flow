@@ -1,5 +1,5 @@
 // ============================================================
-// Akse Demo DW — Full Stack DAX Measures
+// Lodværket Demo DW — Full Stack DAX Measures
 // ============================================================
 // Create in Fabric semantic model: New measure -> paste each block
 // Tables: gold_fact_pipeline, gold_fact_marketing, gold_fact_web_sessions,

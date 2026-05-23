@@ -1,4 +1,4 @@
-# Akse Demo DW — Technical build playbook (Phase E)
+# Lodværket Demo DW — Technical build playbook (Phase E)
 
 > **This is the technical playbook for the build phase only.**
 > For the full client lifecycle (lead → proposal → kickoff → build → handover → upsell), read [`WORKFLOW.md`](./WORKFLOW.md) first.
@@ -60,7 +60,7 @@ Also recommended: `Claude in Chrome` extension for any Fabric web UI step we can
 ## The orchestration prompt (paste this to Claude on day one)
 
 ```
-You are building a Power BI data warehouse demo for a new Akse client.
+You are building a Power BI data warehouse demo for a new Lodværket client.
 
 Follow PLAYBOOK.md exactly. Each phase has a verify gate — STOP at it if it
 fails. Do not silently proceed.

@@ -1,5 +1,5 @@
 """
-Full Stack Synthetic Data Generator for Akse Demo DW
+Full Stack Synthetic Data Generator for Lodværket Demo DW
 =====================================================
 Generates realistic, interconnected data for 6 sources:
 BC ERP, CRM, Marketing, Finance, HR, Customer Satisfaction

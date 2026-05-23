@@ -2,7 +2,7 @@
 
 **Status:** Draft for review
 **Date:** 2026-05-22
-**Owner:** Benjamin (Akse)
+**Owner:** Benjamin (Lodværket)
 **Phase:** Inserts as Phase 0c in `PLAYBOOK.md`, between source-scan/modelling (0a/0b) and bronze ingestion (1).
 
 ---

@@ -1,5 +1,5 @@
 {
-  "name": "{{client_name}} — Akse Demo DW",
+  "name": "{{client_name}} — Power BI theme",
   "$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/master/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.137.json",
   "dataColors": [
     "{{primary}}",

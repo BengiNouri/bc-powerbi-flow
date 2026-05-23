@@ -1,4 +1,4 @@
-# Akse Demo DW -- Power BI Report Layout (Full Stack)
+# Lodværket Demo DW -- Power BI Report Layout (Full Stack)
 
 ## Report Structure: 6 pages
 

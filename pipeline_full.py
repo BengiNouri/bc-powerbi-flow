@@ -1,5 +1,5 @@
 """
-Akse Demo DW -- Full Stack Medallion Pipeline
+Lodværket Demo DW -- Full Stack Medallion Pipeline
 ==============================================
 Sources: BC ERP (synthetic) + CRM + Marketing + Finance + HR + CSAT
 Layers: Bronze (JSON) -> Silver (Parquet) -> Gold (Star Schema Parquet)
@@ -30,13 +30,13 @@ def save_bronze(data: dict[str, list[dict]]) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Akse Demo DW Pipeline")
+    parser = argparse.ArgumentParser(description="Lodværket Demo DW Pipeline")
     parser.add_argument("--verify", action="store_true", help="Run verification after pipeline")
     args = parser.parse_args()
 
     start = time.time()
     print("=" * 48)
-    print("   Akse Demo DW -- Full Stack Pipeline")
+    print("   Lodværket Demo DW -- Full Stack Pipeline")
     print("=" * 48)
 
     # 1. Generate synthetic data

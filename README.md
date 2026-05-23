@@ -1,6 +1,6 @@
-# Akse Demo DW
+# Lodværket Demo DW
 
-> Akse's reusable template for delivering data warehouse + Power BI projects to clients.
+> Lodværket's reusable template for delivering data warehouse + Power BI projects to clients.
 > Goes from "BC + CRM + other systems" to "branded Power BI report on Fabric" in 1-2 weeks.
 
 ## Start here
@@ -40,6 +40,13 @@ top of `AkseDemoDW_v2.pbip` to instantly re-skin the report as if it were that b
 - `gen_pbi_report.py` — generate all 6 pages of PBIP visuals
 - `dax_measures_full.dax` — 65-measure cookbook
 
+## Note on naming
+
+Company rename in progress: **Akse → Lodværket**. Docs and code now use Lodværket.
+Some deployed Fabric artefacts (Lakehouse name `Akse_Demo_DW`, notebook
+`Akse_Load_Supabase`, `.pbip` filename `AkseDemoDW_v2.pbip`) still carry the old
+name — they'll be renamed in the next re-deploy session.
+
 ## License
 
-Akse-internal. Not for redistribution.
+Lodværket-internal. Not for redistribution.

@@ -1,5 +1,5 @@
 """
-Generate Akse Demo DW Fabric Notebook (ipynb)
+Generate Lodværket Demo DW Fabric Notebook (ipynb)
 =============================================
 Creates a Jupyter notebook with PySpark cells for Microsoft Fabric.
 Covers all 6 data sources: BC ERP, CRM, Marketing, Finance, HR, CSAT.
@@ -34,7 +34,7 @@ def _code_cell(source: str) -> dict:
 CELLS = [
     # ── Header ────────────────────────────────────────────
     _md_cell(
-        "# Akse Demo DW -- Full Stack Pipeline\n"
+        "# Lodværket Demo DW -- Full Stack Pipeline\n"
         "**Medallion Architecture:** Bronze -> Silver -> Gold (Star Schema)\n\n"
         "**Sources:** BC ERP (synthetic), CRM, Marketing, Finance, HR, Customer Satisfaction\n\n"
         "**Attach Lakehouse** before running: click 'Add' in left panel -> select your Lakehouse"

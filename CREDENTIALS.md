@@ -99,7 +99,7 @@ Same `PG_*` keys as above. `SSLMODE=require` for cloud, `disable` for local Dock
 | `MSSQL_PASSWORD` | Password |
 | `MSSQL_TRUST` | `no` for Azure SQL, `yes` for on-prem with self-signed cert |
 
-Driver requirement on Akse machine: `ODBC Driver 18 for SQL Server` installed.
+Driver requirement on Lodværket machine: `ODBC Driver 18 for SQL Server` installed.
 
 ### HubSpot
 

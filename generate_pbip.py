@@ -1,5 +1,5 @@
 """
-Generate Power BI Project (PBIP) for Akse Demo DW
+Generate Power BI Project (PBIP) for Lodværket Demo DW
 ==================================================
 Creates a complete PBIP folder that PBI Desktop can open directly.
 Includes: data model, PostgreSQL connection, DAX measures, relationships,

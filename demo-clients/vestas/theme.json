@@ -1,5 +1,5 @@
 {
-  "name": "Vestas — Akse Demo DW",
+  "name": "Vestas — Power BI theme",
   "$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/master/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.137.json",
   "dataColors": [
     "#0048AD",

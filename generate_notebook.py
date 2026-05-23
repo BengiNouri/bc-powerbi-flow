@@ -17,7 +17,7 @@ def make_md(text: str) -> dict:
 cells = []
 
 # Markdown header
-cells.append(make_md("# CRONUS_DW v2 -- Full Medallion Pipeline\n**Sources:** Business Central ERP + HubSpot CRM (mock)  \n**Layers:** Bronze -> Silver -> Gold (5 tables)  \n**Built by Akse ApS with AI assistance**\n\nRun all cells top to bottom."))
+cells.append(make_md("# CRONUS_DW v2 -- Full Medallion Pipeline\n**Sources:** Business Central ERP + HubSpot CRM (mock)  \n**Layers:** Bronze -> Silver -> Gold (5 tables)  \n**Built by Lodværket with AI assistance**\n\nRun all cells top to bottom."))
 
 # Cell 1: Config
 cells.append(make_cell("""import traceback, sys

@@ -6,7 +6,7 @@ Designed for PySpark in Microsoft Fabric Lakehouse.
 
 Sources: Business Central ERP + HubSpot CRM (mock)
 Layers: Bronze -> Silver -> Gold (5 tables)
-Built by Akse ApS with AI assistance
+Built by Lodværket with AI assistance
 """
 
 # ============================================================

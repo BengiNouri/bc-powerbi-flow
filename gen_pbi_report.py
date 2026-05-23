@@ -200,7 +200,7 @@ PAGE_DEFS = [
     {
         "key": "exec",
         "displayName": "1. Executive Dashboard",
-        "title": "Akse Demo DW — Executive Dashboard",
+        "title": "Lodværket Demo DW — Executive Dashboard",
         "subtitle": "Cross-functional KPIs across Sales, Pipeline, Finance, HR and Customers",
     },
     {
@@ -256,7 +256,7 @@ def kpi_row(measures: list[tuple[str, str]]) -> list[dict]:
 def page_exec() -> list[dict]:
     visuals = []
     # title
-    visuals.append(make_textbox("Akse Demo DW — Executive Dashboard", 20, 10, 1240, 48, size=24))
+    visuals.append(make_textbox("Lodværket Demo DW — Executive Dashboard", 20, 10, 1240, 48, size=24))
     # KPIs
     visuals += kpi_row([
         ("Revenue", "Revenue"),

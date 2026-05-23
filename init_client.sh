@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# init_client.sh — Scaffold a fresh Akse Demo DW project for a new client.
+# init_client.sh — Scaffold a fresh BC → Power BI flow project for a new client.
 #
 # Usage:
 #   ./init_client.sh <client-slug> <client-url> [<parent-dir>]
 #
 # Example:
 #   ./init_client.sh nordicsteel https://nordicsteel.dk ~/Projects
-#   → creates ~/Projects/akse-dw-nordicsteel/ ready for the playbook
+#   → creates ~/Projects/bc-powerbi-flow-nordicsteel/ ready for the playbook
 set -euo pipefail
 
 # ─── Parse args ─────────────────────────────────────────────
@@ -27,7 +27,7 @@ fi
 CLIENT_SLUG="$1"
 CLIENT_URL="$2"
 PARENT_DIR="${3:-$(pwd)}"
-PROJECT_DIR="$PARENT_DIR/akse-dw-$CLIENT_SLUG"
+PROJECT_DIR="$PARENT_DIR/bc-powerbi-flow-$CLIENT_SLUG"
 TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -d "$PROJECT_DIR" ]; then
@@ -35,7 +35,7 @@ if [ -d "$PROJECT_DIR" ]; then
   exit 1
 fi
 
-echo "Scaffolding $PROJECT_DIR from template $TEMPLATE_DIR..."
+echo "Scaffolding $PROJECT_DIR from bc-powerbi-flow template..."
 mkdir -p "$PROJECT_DIR"
 
 # ─── Copy template files ────────────────────────────────────
@@ -91,7 +91,7 @@ cp "$TEMPLATE_DIR/.env.example" "$ENV_FILE"
 cd "$PROJECT_DIR"
 git init -q
 git add -A
-git commit -q -m "init: scaffold $CLIENT_SLUG from akse-dw template ($CLIENT_URL)"
+git commit -q -m "init: scaffold $CLIENT_SLUG from bc-powerbi-flow template ($CLIENT_URL)"
 
 # ─── Done ───────────────────────────────────────────────────
 cat <<DONE
