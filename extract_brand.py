@@ -129,16 +129,31 @@ def find_logo(soup: BeautifulSoup, base_url: str) -> str | None:
     return None
 
 
+def _try_svg_to_png(svg_bytes: bytes, dest: Path, width: int = 280) -> bool:
+    """Best-effort SVG → PNG. Returns True on success, False on missing deps."""
+    try:
+        import cairosvg  # noqa: F401
+        cairosvg.svg2png(bytestring=svg_bytes, write_to=str(dest), output_width=width)
+        return True
+    except (ImportError, OSError):
+        # cairo native libs not available on this machine — gen_logo_placeholder
+        # will produce a text-based fallback PNG later
+        return False
+
+
 def download_logo(url: str, dest: Path) -> bool:
     try:
         r = requests.get(url, timeout=10)
         r.raise_for_status()
-        # Convert SVG/ico to PNG if needed (skip SVG for now — store as is)
         ext = Path(urlparse(url).path).suffix.lower()
         if ext == ".svg":
-            dest.with_suffix(".svg").write_bytes(r.content)
-            # Don't attempt SVG → PNG without extra deps
-            return True
+            # Save raw SVG as reference, try PNG conversion
+            (dest.parent / (dest.stem + ".svg")).write_bytes(r.content)
+            png_dest = dest.with_suffix(".png")
+            if _try_svg_to_png(r.content, png_dest):
+                return True
+            # SVG conversion unavailable — caller falls back to gen_logo_placeholder
+            return False
         img = Image.open(io.BytesIO(r.content))
         # Composite onto white background if RGBA so ColorThief works on actual visible colours
         if img.mode in ("RGBA", "LA", "P"):

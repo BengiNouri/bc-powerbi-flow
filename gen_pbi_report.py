@@ -282,6 +282,20 @@ PAGE_DEFS = [
         "title": "Quality & Compliance",
         "subtitle": "SLA performance, critical issues, ticket category trends",
     },
+    {
+        "key": "customer_detail",
+        "displayName": "Customer Detail",
+        "title": "Customer Detail",
+        "subtitle": "Drill-through view — accessed by right-clicking a customer in any page",
+        "drill_through": True,
+    },
+    {
+        "key": "employee_detail",
+        "displayName": "Employee Detail",
+        "title": "Employee Detail",
+        "subtitle": "Drill-through view — accessed by right-clicking an employee in HR page",
+        "drill_through": True,
+    },
 ]
 
 
@@ -294,27 +308,84 @@ def _decisions_page(key: str) -> dict:
 
 
 def _is_page_enabled(key: str) -> bool:
-    """Default true; YAML can disable individual pages."""
+    """Default true; YAML can disable individual pages. Drill-through pages enabled
+    only if listed in interactivity.drill_through_pages."""
+    # Drill-through pages
+    if key in ("customer_detail", "employee_detail"):
+        dt = DECISIONS.get("interactivity", {}).get("drill_through_pages", [])
+        return key in dt
+
     pages = DECISIONS.get("pages", [])
     if not pages:
         # No decisions yaml — only include the original 6 default pages
-        return key != "quality"
+        return key not in ("quality", "customer_detail", "employee_detail")
     pd = _decisions_page(key)
     return pd.get("enabled", False) if pd else False
 
 
-def _top_kpis_for_exec() -> list[tuple[str, str]]:
-    """Read Side 1 top KPIs from decisions, fall back to defaults."""
-    pd = _decisions_page("exec")
-    if pd and pd.get("top_kpis"):
-        return [(k["measure"], k.get("label", k["measure"])) for k in pd["top_kpis"][:5]]
-    return [
+_DEFAULT_KPIS: dict[str, list[tuple[str, str]]] = {
+    "exec": [
         ("Revenue", "Revenue"),
         ("Gross Margin", "Gross Margin"),
         ("Pipeline Value", "Pipeline"),
         ("NPS Score", "NPS"),
         ("Total Headcount", "Headcount"),
-    ]
+    ],
+    "pipeline": [
+        ("Pipeline Value", "Pipeline"),
+        ("Open Pipeline", "Open"),
+        ("Won Revenue", "Won"),
+        ("Win Rate", "Win Rate"),
+        ("Deal Count", "Deals"),
+    ],
+    "marketing": [
+        ("Total Leads", "Leads"),
+        ("Lead Conversion Rate", "Conv Rate"),
+        ("Marketing Spend", "Spend"),
+        ("Total Sessions", "Sessions"),
+        ("Web Conversion Rate", "Web Conv"),
+    ],
+    "finance": [
+        ("Revenue Actual", "Revenue"),
+        ("Gross Profit Actual", "Gross Profit"),
+        ("Gross Margin %", "Margin"),
+        ("Operating Profit", "Op Profit"),
+        ("Budget Variance %", "Variance"),
+    ],
+    "hr": [
+        ("Total Headcount", "Headcount"),
+        ("Total Salary Cost", "Salary Cost"),
+        ("Avg Utilization", "Utilization"),
+        ("Avg Tenure Years", "Tenure"),
+        ("Turnover Rate", "Turnover"),
+    ],
+    "csat": [
+        ("NPS Score", "NPS"),
+        ("Promoter %", "Promoters"),
+        ("Total Tickets", "Tickets"),
+        ("SLA Met Rate", "SLA Met"),
+        ("Avg Satisfaction Rating", "CSAT"),
+    ],
+    "quality": [
+        ("Critical Tickets",        "Critical"),
+        ("SLA Met Rate",            "SLA Met"),
+        ("Avg Response Time Hours", "Avg Response"),
+        ("Resolution Rate",         "Resolution"),
+        ("Avg Resolution Days",     "Avg Days"),
+    ],
+}
+
+
+def _top_kpis_for(page_key: str) -> list[tuple[str, str]]:
+    """Read top KPIs for any page from decisions, fall back to defaults per page."""
+    pd = _decisions_page(page_key)
+    if pd and pd.get("top_kpis"):
+        return [(k["measure"], k.get("label", k["measure"])) for k in pd["top_kpis"][:5]]
+    return _DEFAULT_KPIS.get(page_key, _DEFAULT_KPIS["exec"])
+
+
+# Back-compat alias
+_top_kpis_for_exec = lambda: _top_kpis_for("exec")
 
 
 # Right-sidebar slicer (240px wide). Content area shrinks accordingly.
@@ -423,14 +494,8 @@ def page_exec() -> list[dict]:
 
 
 def page_pipeline() -> list[dict]:
-    visuals = [make_textbox("Pipeline & CRM", 20, 10, 1240, 48, size=24)]
-    visuals += kpi_row([
-        ("Pipeline Value", "Pipeline"),
-        ("Open Pipeline", "Open"),
-        ("Won Revenue", "Won"),
-        ("Win Rate", "Win Rate"),
-        ("Deal Count", "Deals"),
-    ])
+    visuals = [make_textbox("Pipeline & CRM", 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row(_top_kpis_for("pipeline"))
     # Slicer: country
     visuals.append(make_slicer(column_field("gold_dim_customer", "country_group"), 20, CONTENT_Y, 240, 70))
     # Pipeline by stage
@@ -469,14 +534,8 @@ def page_pipeline() -> list[dict]:
 
 
 def page_marketing() -> list[dict]:
-    visuals = [make_textbox("Marketing & Web Analytics", 20, 10, 1240, 48, size=24)]
-    visuals += kpi_row([
-        ("Total Leads", "Leads"),
-        ("Lead Conversion Rate", "Conv Rate"),
-        ("Marketing Spend", "Spend"),
-        ("Total Sessions", "Sessions"),
-        ("Web Conversion Rate", "Web Conv"),
-    ])
+    visuals = [make_textbox("Marketing & Web Analytics", 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row(_top_kpis_for("marketing"))
     # Campaign type donut
     visuals.append(make_donut(
         "camp_type", column_field("gold_dim_campaign", "campaign_type"),
@@ -513,14 +572,8 @@ def page_marketing() -> list[dict]:
 
 
 def page_finance() -> list[dict]:
-    visuals = [make_textbox("Finance & Budget", 20, 10, 1240, 48, size=24)]
-    visuals += kpi_row([
-        ("Revenue Actual", "Revenue"),
-        ("Gross Profit Actual", "Gross Profit"),
-        ("Gross Margin %", "Margin"),
-        ("Operating Profit", "Op Profit"),
-        ("Budget Variance %", "Variance"),
-    ])
+    visuals = [make_textbox("Finance & Budget", 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row(_top_kpis_for("finance"))
     # Slicer year
     visuals.append(make_slicer(column_field("gold_dim_date", "year"), 20, CONTENT_Y, 240, 70))
     # Budget vs Actual by month
@@ -553,14 +606,8 @@ def page_finance() -> list[dict]:
 
 
 def page_hr() -> list[dict]:
-    visuals = [make_textbox("HR & People", 20, 10, 1240, 48, size=24)]
-    visuals += kpi_row([
-        ("Total Headcount", "Headcount"),
-        ("Total Salary Cost", "Salary Cost"),
-        ("Avg Utilization", "Utilization"),
-        ("Avg Tenure Years", "Tenure"),
-        ("Turnover Rate", "Turnover"),
-    ])
+    visuals = [make_textbox("HR & People", 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row(_top_kpis_for("hr"))
     # Headcount by department
     visuals.append(make_chart(
         "clusteredBarChart", "head_dept",
@@ -598,14 +645,8 @@ def page_hr() -> list[dict]:
 
 
 def page_csat() -> list[dict]:
-    visuals = [make_textbox("Customer Satisfaction & Support", 20, 10, 1240, 48, size=24)]
-    visuals += kpi_row([
-        ("NPS Score", "NPS"),
-        ("Promoter %", "Promoters"),
-        ("Total Tickets", "Tickets"),
-        ("SLA Met Rate", "SLA Met"),
-        ("Avg Satisfaction Rating", "CSAT"),
-    ])
+    visuals = [make_textbox("Customer Satisfaction & Support", 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row(_top_kpis_for("csat"))
     # NPS by category donut
     visuals.append(make_donut(
         "nps_cat", column_field("gold_fact_nps", "nps_category"),
@@ -643,14 +684,8 @@ def page_csat() -> list[dict]:
 
 def page_quality() -> list[dict]:
     """Medical/regulatory Quality & Compliance page — built from gold_fact_tickets."""
-    visuals = [make_textbox("Quality & Compliance", 20, 10, 1240, 48, size=24)]
-    visuals += kpi_row([
-        ("Critical Tickets",       "Critical"),
-        ("SLA Met Rate",           "SLA Met"),
-        ("Avg Response Time Hours", "Avg Response"),
-        ("Resolution Rate",        "Resolution"),
-        ("Avg Resolution Days",    "Avg Days"),
-    ])
+    visuals = [make_textbox("Quality & Compliance", 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row(_top_kpis_for("quality"))
     # Tickets by category over time
     visuals.append(make_chart(
         "lineChart", "tk_cat_month",
@@ -682,14 +717,101 @@ def page_quality() -> list[dict]:
     return visuals
 
 
+def page_customer_detail() -> list[dict]:
+    """Drill-through page — shows full detail for a single customer.
+    Reached by right-clicking a customer in any other page."""
+    visuals = [make_textbox("Customer Detail", 20, 10, 1080, 48, size=24)]
+    # Customer info card row
+    visuals += kpi_row([
+        ("Revenue",          "Revenue"),
+        ("Pipeline Value",   "Pipeline"),
+        ("Total Tickets",    "Tickets"),
+        ("NPS Responses",    "NPS Surveys"),
+        ("Avg Satisfaction Rating", "CSAT"),
+    ])
+    # Revenue trend for this customer
+    visuals.append(make_chart(
+        "lineChart", "cust_rev_trend",
+        column_field("gold_dim_date", "year_month"),
+        [measure_field("_Measures", "Revenue")],
+        20, CONTENT_Y, 620, 240, "Revenue Trend",
+    ))
+    # Deal history table
+    visuals.append(make_table(
+        "cust_deals",
+        [
+            column_field("gold_fact_pipeline", "deal_name"),
+            column_field("gold_fact_pipeline", "stage"),
+            column_field("gold_fact_pipeline", "deal_status"),
+            measure_field("_Measures", "Pipeline Value"),
+        ],
+        660, CONTENT_Y, 600, 240, "Deal History",
+    ))
+    # Ticket history table
+    visuals.append(make_table(
+        "cust_tickets",
+        [
+            column_field("gold_fact_tickets", "ticket_id"),
+            column_field("gold_fact_tickets", "category"),
+            column_field("gold_fact_tickets", "priority"),
+            column_field("gold_fact_tickets", "status"),
+            measure_field("_Measures", "Avg Response Time Hours"),
+        ],
+        20, CONTENT_Y + 250, 1240, 240, "Support Ticket History",
+    ))
+    return visuals
+
+
+def page_employee_detail() -> list[dict]:
+    """Drill-through page — shows full detail for a single employee."""
+    visuals = [make_textbox("Employee Detail", 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row([
+        ("Avg Utilization",          "Utilization"),
+        ("Total Billable Hours",     "Billable hrs"),
+        ("Total Internal Hours",     "Internal hrs"),
+        ("Avg Cost Per Billable Hour", "Cost/hr"),
+        ("Avg Tenure Years",         "Tenure"),
+    ])
+    # Utilization trend
+    visuals.append(make_chart(
+        "lineChart", "emp_util",
+        column_field("gold_fact_hr", "period"),
+        [measure_field("_Measures", "Avg Utilization")],
+        20, CONTENT_Y, 620, 240, "Utilization Trend",
+    ))
+    # Billable vs internal hours
+    visuals.append(make_chart(
+        "clusteredColumnChart", "emp_hours",
+        column_field("gold_fact_hr", "period"),
+        [measure_field("_Measures", "Total Billable Hours"), measure_field("_Measures", "Total Internal Hours")],
+        660, CONTENT_Y, 600, 240, "Hours Allocation",
+    ))
+    # Detail table
+    visuals.append(make_table(
+        "emp_details",
+        [
+            column_field("gold_dim_employee", "first_name"),
+            column_field("gold_dim_employee", "last_name"),
+            column_field("gold_dim_employee", "department"),
+            column_field("gold_dim_employee", "role"),
+            column_field("gold_dim_employee", "hire_date"),
+            column_field("gold_dim_employee", "annual_salary_dkk"),
+        ],
+        20, CONTENT_Y + 250, 1240, 240, "Profile",
+    ))
+    return visuals
+
+
 PAGE_BUILDERS = {
-    "exec":      page_exec,
-    "pipeline":  page_pipeline,
-    "marketing": page_marketing,
-    "finance":   page_finance,
-    "hr":        page_hr,
-    "csat":      page_csat,
-    "quality":   page_quality,
+    "exec":            page_exec,
+    "pipeline":        page_pipeline,
+    "marketing":       page_marketing,
+    "finance":         page_finance,
+    "hr":              page_hr,
+    "csat":            page_csat,
+    "quality":         page_quality,
+    "customer_detail": page_customer_detail,
+    "employee_detail": page_employee_detail,
 }
 
 
@@ -709,7 +831,7 @@ def main():
         page_dir = PAGES / page_hex
         page_dir.mkdir(parents=True, exist_ok=True)
 
-        # page.json
+        # page.json — drill-through pages are hidden from page nav
         page_json = {
             "$schema": SCHEMA_PAGE,
             "name": page_hex,
@@ -718,6 +840,8 @@ def main():
             "height": 720,
             "width": 1280,
         }
+        if pdef.get("drill_through"):
+            page_json["visibility"] = "HiddenInViewMode"
         (page_dir / "page.json").write_text(json.dumps(page_json, indent=2))
 
         # visuals — split any visual with _label into [title textbox, shifted chart]
@@ -734,7 +858,10 @@ def main():
                 visuals.append(v)
             else:
                 visuals.append(v)
-        # Global slicer (top-right corner) — from design_decisions.yaml
+        # Global slicer (top-right corner, y=10) — from design_decisions.yaml
+        # NOTE: per-page slicers from yaml are not rendered because there's no
+        # vertical space at x>=1100 without overlapping the KPI row. Future:
+        # add a filter bar between title and KPIs (requires shifting KPI_Y).
         global_slicer = DECISIONS.get("slicers", {}).get("global", {})
         if global_slicer.get("enabled"):
             try:
