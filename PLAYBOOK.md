@@ -1,7 +1,11 @@
-# Akse Demo DW — Client Onboarding Playbook
+# Akse Demo DW — Technical build playbook (Phase E)
 
-> **Goal:** Take a new client from raw source data (Business Central, Supabase, CSV, etc.)
-> to a working Power BI report in a single guided session. Same flow we proved in this repo.
+> **This is the technical playbook for the build phase only.**
+> For the full client lifecycle (lead → proposal → kickoff → build → handover → upsell), read [`WORKFLOW.md`](./WORKFLOW.md) first.
+> For credential collection (Phase D), see [`CREDENTIALS.md`](./CREDENTIALS.md).
+>
+> **Goal of this file:** Take a new client from raw source data (Business Central, Supabase, CSV, etc.)
+> to a working Power BI report in a single guided session.
 
 ---
 
