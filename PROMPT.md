@@ -43,6 +43,8 @@ READ FIRST (in this order, before doing ANYTHING else):
                             may not generate it across more than one
                             visual until it is verified.
   5. docs/DAX_PATTERNS.md — DAX cookbook (10 categories, Danish)
+  5b.docs/CONFORMED_DIMENSIONS.md — multi-source customer/employee/item
+                            conformance patterns (BC + HubSpot + …)
   6. PLAYBOOK_DRYRUN.md   — known gaps log
   7. templates/report_spec.example.yaml + report_spec.schema.yaml
                           — the contract for Phase 6 (read both)
@@ -153,7 +155,8 @@ WHEN PHASE 0d STARTS (live brainstorm session with client):
 OPEN FOLLOW-UPS (from previous sessions — may already be done):
 ═════════════════════════════════════════════════════════════════════════
 
-  • conformed_dimensions.md pattern guide (PLAYBOOK_DRYRUN gap #5)
+  • ~~conformed_dimensions.md pattern guide~~ — closed in commit
+    after a63bafa — see docs/CONFORMED_DIMENSIONS.md
   • docs/DAX_PATTERNS.md review with a Copilot-actual user
   • PBI Desktop sanity check of spec-driven renderer (PLAYBOOK
     "Sanity checks before declaring done" #6)
