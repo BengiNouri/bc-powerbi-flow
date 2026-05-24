@@ -1,0 +1,138 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# report_spec.yaml  —  Skema (Phase 6)
+# ─────────────────────────────────────────────────────────────────────────────
+# Denne fil dokumenterer kontrakten som gen_pbi_report.py læser. Pr. kunde
+# kopieres denne fil til output/report_spec.yaml og redigeres dér.
+#
+# Designprincipper (Karpathy CLAUDE.md):
+#   1. Tænk før kode → al konfiguration er eksplicit, ingen skjult magi.
+#   2. Simplicitet → kun de fire variationsakser pr. visual: position, type,
+#      category, values. Alt andet (paneer-størrelser, KPI-positioner,
+#      slicer-roller) håndteres af renderen ud fra docs/PBI_PATTERNS.md.
+#   3. Surgical → en kunde-tilpasning rører kun denne fil, aldrig
+#      gen_pbi_report.py.
+#   4. Verify → renderen validerer dette skema og fejler tidligt med en
+#      pænt formuleret fejl hvis et felt mangler. Aldrig stille fejl.
+#
+# Forhold til design_decisions.yaml:
+#   • design_decisions.yaml ejer farver, fonts, logo, sprog, slicers,
+#     drill-through-flags og *hvilke* KPI'er der vises pr. side.
+#   • report_spec.yaml ejer *struktur* — hvilke sider findes og hvilke
+#     visuals står på dem.
+#   • Renderen flettet dem: spec'en for strukturen, decisions for finish.
+#
+# Bagudkompatibilitet:
+#   Hvis report_spec.yaml mangler, falder renderen tilbage til den
+#   indbyggede CRONUS-spec (templates/report_spec.example.yaml) — så
+#   eksisterende kørsler ikke brydes.
+
+# ─── TOP-LEVEL ────────────────────────────────────────────────────────────────
+
+version: 1                       # Skema-version. Renderen afviser ukendte.
+
+canvas:
+  width:  1280                   # PBI standard. Ændres sjældent.
+  height: 720
+  margin_x: 20                   # Venstre/højre kant
+  title_y: 10                    # Title-textbox y-position
+  title_h: 48                    # Title-textbox højde
+  kpi_y:  70                     # KPI-row y-position
+  kpi_h:  110                    # KPI-row højde
+  content_y: 200                 # Hvor charts/tables begynder
+  content_h: 490                 # Total højde til charts/tables
+
+# ─── SIDER ────────────────────────────────────────────────────────────────────
+# Hver side har: key, display_name, title, optional drill_through, og
+# en visuals-liste der definerer alt under KPI-rækken.
+
+pages:
+  - key: "exec"                  # Intern nøgle. Matches mod design_decisions.yaml.
+    display_name: "1. Executive Dashboard"
+    title: "{client_name} — Executive Dashboard"   # {client_name} ekspanderes
+    drill_through: false         # Hvis true: visibility=HiddenInViewMode
+    visuals:
+      # Hver visual angiver placering + type + felter. Ingen positionsmagi
+      # i renderen — du sætter selv x/y/w/h ud fra canvas-koordinater.
+
+      - type: "lineChart"        # lineChart | clusteredBarChart |
+                                  # clusteredColumnChart | donutChart | tableEx
+        id: "rev_month"           # Unikt suffix (bruges til visual.name hash)
+        title: "Revenue by Month" # Vises som 12pt textbox over chartet
+        x: 20
+        y: 200                    # = canvas.content_y
+        w: 620
+        h: 240
+        category:
+          table: "gold_dim_date"
+          column: "year_month"
+        values:
+          - { table: "_Measures", measure: "Revenue" }
+
+      - type: "clusteredBarChart"
+        id: "rev_industry"
+        title: "Revenue by Industry"
+        x: 660
+        y: 200
+        w: 600
+        h: 240
+        category:
+          table: "gold_dim_customer"
+          column: "industry"
+        values:
+          - { table: "_Measures", measure: "Revenue" }
+
+      - type: "donutChart"
+        id: "pipe_status"
+        title: "Pipeline by Status"
+        x: 20
+        y: 450
+        w: 410
+        h: 240
+        category:
+          table: "gold_fact_pipeline"
+          column: "deal_status"
+        values:
+          - { table: "_Measures", measure: "Pipeline Value" }
+
+      # Eksempel på chart med flere series (clusteredColumnChart):
+      - type: "clusteredColumnChart"
+        id: "budget_cat"
+        title: "Budget vs Actual"
+        x: 450
+        y: 450
+        w: 420
+        h: 240
+        category:
+          table: "gold_fact_budget"
+          column: "category"
+        values:
+          - { table: "_Measures", measure: "Budget Total" }
+          - { table: "_Measures", measure: "Actual Total" }
+
+      # Eksempel på tabel (tableEx) — alle fields under values, ingen category:
+      # - type: "tableEx"
+      #   id: "top_deals"
+      #   title: "Top 10 Deals"
+      #   x: 20
+      #   y: 200
+      #   w: 1240
+      #   h: 490
+      #   values:
+      #     - { table: "gold_fact_pipeline", column: "deal_name" }
+      #     - { table: "gold_dim_customer",  column: "company_name" }
+      #     - { table: "gold_fact_pipeline", column: "stage" }
+      #     - { table: "_Measures",          measure: "Pipeline Value" }
+
+# ─── VALIDERINGSREGLER (håndhævet af renderen) ────────────────────────────────
+# Renderen afviser spec'en med en eksplicit fejl hvis:
+#
+#   • En visual ligger uden for canvas (x+w > canvas.width eller y+h > canvas.height)
+#   • To visuals overlapper inden for samme side
+#   • visualType ikke er en af de fem understøttede
+#   • category eller values mangler for non-table visuals
+#   • values er tom liste
+#   • En page.key bruges to gange
+#   • Et felt har både `column` og `measure` (mutually exclusive)
+#
+# Disse regler er afledt direkte fra docs/PBI_PATTERNS.md — de samme regler
+# som hardcoded var i den gamle gen_pbi_report.py spredt over 9 funktioner.
