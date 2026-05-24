@@ -15,19 +15,21 @@ Same project, three labels. Use the one that fits the audience.
 
 ## Start here
 
-1. **`WORKFLOW.md`** — Master document. Full client lifecycle from first contact to upsell. **Read this first in every new session.**
-2. **`CREDENTIALS.md`** — Checklist for what to ask each client (BC keys, Supabase, etc.).
-3. **`PLAYBOOK.md`** — Technical build playbook (Phase E of the workflow).
+1. **`PROMPT.md`** — **Paste this into Claude Code on day one of any new engagement.** It tells Claude exactly which docs to read, which skills to invoke, and which mistakes to avoid.
+2. **`WORKFLOW.md`** — Master document. Full client lifecycle from first contact to upsell.
+3. **`CREDENTIALS.md`** — Checklist for what to ask each client (BC keys, Supabase, etc.).
+4. **`PLAYBOOK.md`** — Technical build playbook (Phase E of the workflow).
+5. **`docs/PBI_PATTERNS.md`** — Tested DO/DON'T patterns. **Read before generating any DAX measure or visual.json.**
 
 ## Spin up a new client project
 
 ```bash
 ./init_client.sh nordicsteel https://nordicsteel.dk ~/Projects
-cd ~/Projects/akse-dw-nordicsteel
+cd ~/Projects/bc-powerbi-flow-nordicsteel
 claude
 ```
 
-Then in Claude: paste the orchestration prompt from `PLAYBOOK.md`.
+Then in Claude: paste the orchestration prompt from `PROMPT.md`.
 
 ## Demo artefacts for sales
 
