@@ -1,0 +1,204 @@
+{
+  "definitions": [
+    {
+      "tableName": "gold_dim_date",
+      "name": "date_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_date",
+      "name": "is_weekend",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "name": "campaign_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "name": "customer_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "name": "crm_company_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "name": "bc_customer_number",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_department",
+      "name": "department_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "name": "employee_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_item",
+      "name": "item_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_dim_item",
+      "name": "category_code",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_budget",
+      "name": "budget_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_budget",
+      "name": "date_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "name": "timesheet_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "name": "employee_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "name": "campaign_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "name": "survey_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "name": "bc_customer_number",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "name": "date_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "name": "customer_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "name": "is_promoter",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "name": "is_detractor",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "name": "deal_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "name": "customer_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "name": "crm_company_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "name": "is_won",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "name": "is_lost",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "name": "created_date_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "name": "close_date_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "name": "line_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "name": "invoice_number",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "name": "date_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "name": "item_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "name": "customer_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "name": "category_code",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "name": "ticket_id",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "name": "bc_customer_number",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "name": "sla_met",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "name": "created_date_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "name": "customer_key",
+      "isHidden": true
+    },
+    {
+      "tableName": "gold_fact_web_sessions",
+      "name": "date_key",
+      "isHidden": true
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "renameDefinitions": [
+    {
+      "tableName": "gold_dim_date",
+      "currentName": "day_name",
+      "newName": "Day Name"
+    },
+    {
+      "tableName": "gold_dim_date",
+      "currentName": "month_name",
+      "newName": "Month Name"
+    },
+    {
+      "tableName": "gold_dim_date",
+      "currentName": "day_of_week",
+      "newName": "Day of Week"
+    },
+    {
+      "tableName": "gold_dim_date",
+      "currentName": "week_of_year",
+      "newName": "Week of Year"
+    },
+    {
+      "tableName": "gold_dim_date",
+      "currentName": "year_quarter",
+      "newName": "Year-Quarter"
+    },
+    {
+      "tableName": "gold_dim_date",
+      "currentName": "year_month",
+      "newName": "Year-Month"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "campaign_name",
+      "newName": "Campaign Name"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "campaign_type",
+      "newName": "Campaign Type"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "start_date",
+      "newName": "Start Date"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "end_date",
+      "newName": "End Date"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "budget_dkk",
+      "newName": "Budget (DKK)"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "spent_dkk",
+      "newName": "Spent (DKK)"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "target_audience",
+      "newName": "Target Audience"
+    },
+    {
+      "tableName": "gold_dim_campaign",
+      "currentName": "roi_pct",
+      "newName": "ROI %"
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "currentName": "customer_name",
+      "newName": "Customer Name"
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "currentName": "country_group",
+      "newName": "Country Group"
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "currentName": "revenue_segment",
+      "newName": "Revenue Segment"
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "currentName": "customer_status",
+      "newName": "Customer Status"
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "currentName": "annual_revenue_dkk",
+      "newName": "Annual Revenue (DKK)"
+    },
+    {
+      "tableName": "gold_dim_customer",
+      "currentName": "lead_source",
+      "newName": "Lead Source"
+    },
+    {
+      "tableName": "gold_dim_department",
+      "currentName": "avg_salary",
+      "newName": "Avg Salary (DKK)"
+    },
+    {
+      "tableName": "gold_dim_department",
+      "currentName": "total_cost",
+      "newName": "Total Cost (DKK)"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "first_name",
+      "newName": "First Name"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "last_name",
+      "newName": "Last Name"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "hire_date",
+      "newName": "Hire Date"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "termination_date",
+      "newName": "Termination Date"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "tenure_years",
+      "newName": "Tenure (years)"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "annual_salary_dkk",
+      "newName": "Annual Salary (DKK)"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "monthly_cost_dkk",
+      "newName": "Monthly Cost (DKK)"
+    },
+    {
+      "tableName": "gold_dim_employee",
+      "currentName": "employment_type",
+      "newName": "Employment Type"
+    },
+    {
+      "tableName": "gold_dim_item",
+      "currentName": "item_name",
+      "newName": "Item Name"
+    },
+    {
+      "tableName": "gold_dim_item",
+      "currentName": "item_type",
+      "newName": "Item Type"
+    },
+    {
+      "tableName": "gold_dim_item",
+      "currentName": "unit_price",
+      "newName": "Unit Price (DKK)"
+    },
+    {
+      "tableName": "gold_dim_item",
+      "currentName": "unit_cost",
+      "newName": "Unit Cost (DKK)"
+    },
+    {
+      "tableName": "gold_dim_item",
+      "currentName": "inventory_qty",
+      "newName": "Inventory Qty"
+    },
+    {
+      "tableName": "gold_dim_item",
+      "currentName": "margin_pct",
+      "newName": "Margin %"
+    },
+    {
+      "tableName": "gold_dim_item",
+      "currentName": "revenue_category",
+      "newName": "Revenue Category"
+    },
+    {
+      "tableName": "gold_fact_budget",
+      "currentName": "budget_dkk",
+      "newName": "Budget (DKK)"
+    },
+    {
+      "tableName": "gold_fact_budget",
+      "currentName": "actual_dkk",
+      "newName": "Actual (DKK)"
+    },
+    {
+      "tableName": "gold_fact_budget",
+      "currentName": "variance_dkk",
+      "newName": "Variance (DKK)"
+    },
+    {
+      "tableName": "gold_fact_budget",
+      "currentName": "variance_pct",
+      "newName": "Variance %"
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "currentName": "billable_hours",
+      "newName": "Billable Hours"
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "currentName": "internal_hours",
+      "newName": "Internal Hours"
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "currentName": "total_hours",
+      "newName": "Total Hours"
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "currentName": "utilization_pct",
+      "newName": "Utilization %"
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "currentName": "monthly_cost_dkk",
+      "newName": "Monthly Cost (DKK)"
+    },
+    {
+      "tableName": "gold_fact_hr",
+      "currentName": "cost_per_billable_hour",
+      "newName": "Cost per Billable Hour (DKK)"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "total_leads",
+      "newName": "Total Leads"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "qualified_leads",
+      "newName": "Qualified Leads"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "converted_leads",
+      "newName": "Converted Leads"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "avg_score",
+      "newName": "Avg Score"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "conversion_rate",
+      "newName": "Conversion Rate %"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "campaign_type",
+      "newName": "Campaign Type"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "budget_dkk",
+      "newName": "Budget (DKK)"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "spent_dkk",
+      "newName": "Spent (DKK)"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "cost_per_lead",
+      "newName": "Cost per Lead (DKK)"
+    },
+    {
+      "tableName": "gold_fact_marketing",
+      "currentName": "cost_per_conversion",
+      "newName": "Cost per Conversion (DKK)"
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "currentName": "company_name",
+      "newName": "Company Name"
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "currentName": "survey_date",
+      "newName": "Survey Date"
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "currentName": "nps_score",
+      "newName": "NPS Score"
+    },
+    {
+      "tableName": "gold_fact_nps",
+      "currentName": "nps_category",
+      "newName": "NPS Category"
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "currentName": "deal_name",
+      "newName": "Deal Name"
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "currentName": "amount_dkk",
+      "newName": "Amount (DKK)"
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "currentName": "weighted_amount_dkk",
+      "newName": "Weighted Amount (DKK)"
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "currentName": "deal_status",
+      "newName": "Deal Status"
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "currentName": "days_in_pipeline",
+      "newName": "Days in Pipeline"
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "currentName": "deal_owner",
+      "newName": "Deal Owner"
+    },
+    {
+      "tableName": "gold_fact_pipeline",
+      "currentName": "deal_source",
+      "newName": "Deal Source"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "item_name",
+      "newName": "Item Name"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "unit_price",
+      "newName": "Unit Price (DKK)"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "revenue_dkk",
+      "newName": "Revenue (DKK)"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "discount_dkk",
+      "newName": "Discount (DKK)"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "vat_dkk",
+      "newName": "VAT (DKK)"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "cogs_dkk",
+      "newName": "COGS (DKK)"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "gross_profit_dkk",
+      "newName": "Gross Profit (DKK)"
+    },
+    {
+      "tableName": "gold_fact_sales",
+      "currentName": "gross_margin_pct",
+      "newName": "Gross Margin %"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "company_name",
+      "newName": "Company Name"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "created_date",
+      "newName": "Created Date"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "resolved_date",
+      "newName": "Resolved Date"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "response_time_hours",
+      "newName": "Response Time (hrs)"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "sla_target_hours",
+      "newName": "SLA Target (hrs)"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "satisfaction_rating",
+      "newName": "Satisfaction Rating"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "assigned_to",
+      "newName": "Assigned to"
+    },
+    {
+      "tableName": "gold_fact_tickets",
+      "currentName": "resolution_days",
+      "newName": "Resolution (days)"
+    },
+    {
+      "tableName": "gold_fact_web_sessions",
+      "currentName": "session_month",
+      "newName": "Session Month"
+    },
+    {
+      "tableName": "gold_fact_web_sessions",
+      "currentName": "new_users",
+      "newName": "New Users"
+    },
+    {
+      "tableName": "gold_fact_web_sessions",
+      "currentName": "bounce_rate",
+      "newName": "Bounce Rate %"
+    },
+    {
+      "tableName": "gold_fact_web_sessions",
+      "currentName": "pages_per_session",
+      "newName": "Pages per Session"
+    },
+    {
+      "tableName": "gold_fact_web_sessions",
+      "currentName": "avg_duration_sec",
+      "newName": "Avg Duration (sec)"
+    },
+    {
+      "tableName": "gold_fact_web_sessions",
+      "currentName": "conversion_rate",
+      "newName": "Conversion Rate %"
+    }
+  ]
+}
