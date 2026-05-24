@@ -202,12 +202,12 @@ clients until drivers ship.
 - [x] `init_client.sh` to scaffold new client folder + replace placeholders (commit c1f1246)
 
 **P1 — Quality improvements:**
-- [ ] `dax_patterns.md` measure cookbook
+- [ ] `dax_patterns.md` measure cookbook → **delvist lukket**: `docs/DAX_PATTERNS.md` skrevet (kogebog på dansk med 10+ mønstre + format string-opslagsbord). Mangler at blive læst igennem af nogen der har bygget med Copilot.
 - [ ] `conformed_dimensions.md` pattern guide
-- [ ] Fix `roi_pct` style format heuristic in `gen_pbi_schemas.py`
-- [ ] `report_spec.yaml` schema for `gen_pbi_report.py`
-- [ ] Slicer cross-filter verification step in sanity checklist
-- [ ] Reorder MarkAsDateTable before relationships in Phase 5
+- [x] Fix `roi_pct` style format heuristic in `gen_pbi_schemas.py` — `fmt()` tager nu en sample-serie og vælger plain format hvis max(abs) > 1. Unit tests i `tests/test_gen_pbi_schemas.py`.
+- [x] `report_spec.yaml` schema for `gen_pbi_report.py` — `gen_pbi_report.py` er nu spec-drevet og læser `output/report_spec.yaml` (fallback til `templates/report_spec.example.yaml`). Validering med eksplicitte fejl. Bit-stabil mod gamle output for CRONUS-rapporten.
+- [x] Slicer cross-filter verification step in sanity checklist — tilføjet til både `PLAYBOOK.md` og `docs/VISUAL_QA_CHECKLIST.md`.
+- [x] Reorder MarkAsDateTable before relationships in Phase 5 — `PLAYBOOK.md` Phase 5 trin opdateret.
 
 **P2 — Nice to have:**
 - [ ] `--no-counts` flag on scanner for fast scans
