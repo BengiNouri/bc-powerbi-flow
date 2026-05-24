@@ -61,7 +61,7 @@
         "name": "roi_pct",
         "dataType": "double",
         "sourceColumn": "roi_pct",
-        "formatString": "0.00%"
+        "formatString": "#,##0.00"
       }
     ]
   },
@@ -460,7 +460,7 @@
         "name": "variance_pct",
         "dataType": "double",
         "sourceColumn": "variance_pct",
-        "formatString": "0.00%"
+        "formatString": "#,##0.00"
       }
     ]
   },
@@ -510,7 +510,7 @@
         "name": "utilization_pct",
         "dataType": "double",
         "sourceColumn": "utilization_pct",
-        "formatString": "0.00%"
+        "formatString": "#,##0.00"
       },
       {
         "name": "monthly_cost_dkk",

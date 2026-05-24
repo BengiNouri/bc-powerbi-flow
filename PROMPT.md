@@ -14,20 +14,40 @@ client's data (BC ERP + CRM + other systems) into a branded Power BI
 report on Microsoft Fabric in 1-2 weeks.
 
 ═════════════════════════════════════════════════════════════════════════
+STEP 0 — BRANCH STATUS CHECK (run before anything else, including reads):
+═════════════════════════════════════════════════════════════════════════
+
+  Run this immediately:
+    git fetch origin
+    git status
+    git log --oneline -5
+    git branch -a
+
+  If local is behind origin/master → propose `git pull --ff-only` and ask.
+  If un-merged `claude/*` branches exist on remote → STOP, list them, and
+  ask whether to merge into master or check one out. Lost work from a
+  previous session is a silent failure I cannot detect myself.
+
+═════════════════════════════════════════════════════════════════════════
 READ FIRST (in this order, before doing ANYTHING else):
 ═════════════════════════════════════════════════════════════════════════
 
   1. WORKFLOW.md          — master flow (phases A through H)
   2. PLAYBOOK.md          — technical build steps (phases 0a-7)
   3. CREDENTIALS.md       — what to ask client for in phase D
-  4. docs/PBI_PATTERNS.md — TESTED DO/DON'T patterns. READ BEFORE
-                            generating ANY DAX measure or visual.json.
-                            Each entry was verified — using untested
-                            patterns broke the demo three times in
-                            session 2026-05-23.
-  5. PLAYBOOK_DRYRUN.md   — known gaps log
-  6. sales/PITCH.md       — what the client is buying
-  7. sales/PRICING.md     — three packages (45K / 85K / 150K)
+  4. docs/PBI_PATTERNS.md — TESTED DO/DON'T patterns. PROOF-REQUIRED:
+                            if you want to use a pattern NOT listed as
+                            ✅ DO, you must explicitly mark it
+                            "needs verification in PBI Desktop" in
+                            the code comment AND the prompt, and you
+                            may not generate it across more than one
+                            visual until it is verified.
+  5. docs/DAX_PATTERNS.md — DAX cookbook (10 categories, Danish)
+  6. PLAYBOOK_DRYRUN.md   — known gaps log
+  7. templates/report_spec.example.yaml + report_spec.schema.yaml
+                          — the contract for Phase 6 (read both)
+  8. sales/PITCH.md       — what the client is buying
+  9. sales/PRICING.md     — three packages (45K / 85K / 150K)
 
 After reading, do not proceed until you have used AskUserQuestion to ask
 me ALL four of these in ONE message:
@@ -39,7 +59,7 @@ me ALL four of these in ONE message:
   4. Fabric workspace ID + Lakehouse ID
 
 ═════════════════════════════════════════════════════════════════════════
-RULES OF ENGAGEMENT (Karpathy CLAUDE.md, non-negotiable):
+RULES OF ENGAGEMENT (Karpathy CLAUDE.md + session learnings, non-negotiable):
 ═════════════════════════════════════════════════════════════════════════
 
   1. Think before coding. State assumptions. If two reasonable paths
@@ -49,6 +69,16 @@ RULES OF ENGAGEMENT (Karpathy CLAUDE.md, non-negotiable):
   3. Surgical changes. Every diff line traces to the current phase goal.
   4. Goal-driven execution. Each phase has a verify gate. STOP if it
      fails — do not silently proceed.
+  5. Behavioural-diff confirmation. When you rewrite or replace an
+     existing file/function, list EVERY behavioural change as a
+     bullet point and ask "OK to apply?" before writing. "Clean
+     overwrite is fine" does NOT apply to hidden default changes —
+     a removed branch in an if-statement is a behavioural change
+     even if the function signature is unchanged.
+  6. PBI_PATTERNS is proof-required, not aspirational. If your
+     pattern is not in docs/PBI_PATTERNS.md as ✅ DO, mark it
+     "needs verification in PBI Desktop" inline and verify ONE
+     instance manually before scaling to N visuals.
 
 ═════════════════════════════════════════════════════════════════════════
 SKILLS TO INVOKE AT EACH PHASE:
@@ -71,8 +101,17 @@ SKILLS TO INVOKE AT EACH PHASE:
   Phase 5 Semantic model — powerbi-modeling-mcp ONLY
                           (table_operations, relationship_operations,
                           measure_operations, dax_query_operations)
-  Phase 6 Visuals       — gen_pbi_report.py
-                          MUST consult docs/PBI_PATTERNS.md first
+  Phase 6 Visuals       — EDIT output/report_spec.yaml (copy
+                          templates/report_spec.example.yaml as the
+                          starting point). DO NOT edit gen_pbi_report.py
+                          for client work — the renderer is spec-driven
+                          since commit 0c45f5e. If the renderer is
+                          missing capability for a client, extend the
+                          schema (templates/report_spec.schema.yaml) +
+                          renderer + tests in one commit — never
+                          hardcode a page builder.
+                          MUST consult docs/PBI_PATTERNS.md before
+                          adding any new visual type to the spec.
   Phase 7 Publish       — File → Publish from PBI Desktop to Fabric workspace
                           + design:accessibility-review
 
@@ -111,11 +150,23 @@ WHEN PHASE 0d STARTS (live brainstorm session with client):
   7. Do not proceed to Phase 1 without sign-off
 
 ═════════════════════════════════════════════════════════════════════════
+OPEN FOLLOW-UPS (from previous sessions — may already be done):
+═════════════════════════════════════════════════════════════════════════
+
+  • conformed_dimensions.md pattern guide (PLAYBOOK_DRYRUN gap #5)
+  • docs/DAX_PATTERNS.md review with a Copilot-actual user
+  • PBI Desktop sanity check of spec-driven renderer (PLAYBOOK
+    "Sanity checks before declaring done" #6)
+  • Each session: write learnings back into PLAYBOOK_DRYRUN.md
+    before closing — that's what makes client #3 take 1h vs 3h
+
+═════════════════════════════════════════════════════════════════════════
 START NOW:
 ═════════════════════════════════════════════════════════════════════════
 
-After reading the docs, propose the 9-phase plan with verify commands
-for each phase, then wait for my approval before Phase 0a.
+After STEP 0 (git status) and the docs read, propose the 9-phase plan
+with verify commands for each phase, then wait for my approval before
+Phase 0a.
 ```
 
 ---
