@@ -63,7 +63,7 @@ KPI_W = 228
 KPI_LAST_W = 248
 KPI_H = 110
 KPI_Y = 70
-CHART_TITLE_H = 28
+CHART_TITLE_H = 40   # Was 28; bumped so 14pt bold labels never get clipped
 
 
 # ─── DECISION + SPEC LOADING ──────────────────────────────────────────────────
@@ -514,7 +514,8 @@ def render_visual(v: dict) -> dict:
 def render_page(page: dict, client_name: str, decisions: dict) -> list[dict]:
     """Build the full visual list for one page (title, KPIs, then spec visuals)."""
     title_text = page.get("title", page["display_name"]).replace("{client_name}", client_name)
-    visuals: list[dict] = [make_textbox(title_text, 20, 10, 1080, 48, size=24)]
+    # Page title — 24pt bold needs ~56px height to avoid descender clip
+    visuals: list[dict] = [make_textbox(title_text, 20, 10, 1080, 56, size=24, bold=True)]
     visuals += kpi_row(_top_kpis_for(decisions, page["key"]))
     for v in page.get("visuals", []):
         visuals.append(render_visual(v))
@@ -531,7 +532,8 @@ def split_titled_visuals(raw: list[dict]) -> list[dict]:
             label = v.pop("_label")
             pos = v["position"]
             x, y, w = pos["x"], pos["y"], pos["width"]
-            visuals.append(make_textbox(label, x, y, w, CHART_TITLE_H - 4, size=12))
+            # 14pt bold, plenty of vertical room — no clipping even for longer labels
+            visuals.append(make_textbox(label, x, y, w, CHART_TITLE_H - 4, size=14, bold=True))
             pos["y"] = y + CHART_TITLE_H
             pos["height"] = max(80, pos["height"] - CHART_TITLE_H)
             visuals.append(v)
