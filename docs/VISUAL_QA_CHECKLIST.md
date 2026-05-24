@@ -30,6 +30,11 @@
 
 ### Interaktivitet
 - [ ] Klik en bar i et chart → andre visuals filtreres (cross-filter)
+- [ ] **Slicer cross-filter virker**: Vælg en værdi i Year-slicer eller
+      Country-slicer → mindst ét chart OG mindst ét KPI-card opdateres.
+      En slicer der renderes uden at filtrere er en stille bug — som regel
+      en manglende relation i modellen eller forkert crossFilter-retning.
+      (PLAYBOOK_DRYRUN.md gap #17)
 - [ ] Brug global Year-slicer → ALLE charts/KPIs på siden opdateres
 - [ ] Højreklik en customer (på Pipeline-siden) → Drill through → Customer Detail (hvis enabled)
 - [ ] Højreklik en employee (på HR-siden) → Drill through → Employee Detail (hvis enabled)

@@ -1,16 +1,23 @@
 """Generate PBI report pages and visuals as JSON in PBIP format.
 
-Reads design_decisions.yaml (if present) to drive page enablement, top KPIs,
-client name in titles, slicer placement, and chart style.
+Spec-driven (v2):
+  • Page structure lives in templates/report_spec.example.yaml (or
+    output/report_spec.yaml for the current client).
+  • design_decisions.yaml still owns colours, fonts, slicers and top-KPIs.
+  • All low-level visual builders (make_card, make_chart, ...) follow the
+    DO patterns in docs/PBI_PATTERNS.md. They have not changed.
 
-Layout: 1280x720 canvas
-  - Title row:   y=0,   h=60
-  - KPI row:     y=70,  h=110
-  - Content:     y=200, h=490
+Canvas layout (1280×720):
+  • Title row:   y=10,  h=48
+  • KPI row:     y=70,  h=110
+  • Content:     y=200, h=490
 """
+from __future__ import annotations
+
 import hashlib
 import json
 import shutil
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent
@@ -18,6 +25,48 @@ REPORT = ROOT / "output" / "AkseDemoDW" / "AkseDemoDW_v2.Report"
 PAGES = REPORT / "definition" / "pages"
 DECISIONS_FILE = ROOT / "output" / "branding" / "design_decisions.yaml"
 
+# Spec lookup order: explicit override → client-specific → example fallback
+SPEC_CANDIDATES = [
+    ROOT / "output" / "report_spec.yaml",
+    ROOT / "templates" / "report_spec.example.yaml",
+]
+
+SCHEMA_PAGE = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json"
+SCHEMA_VISUAL = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json"
+SCHEMA_PAGES = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.1.0/schema.json"
+
+SUPPORTED_VISUAL_TYPES = {
+    "lineChart",
+    "clusteredBarChart",
+    "clusteredColumnChart",
+    "donutChart",
+    "tableEx",
+    "slicer",
+}
+
+# Canvas / KPI defaults — overridable via spec.canvas
+DEFAULT_CANVAS = {
+    "width": 1280,
+    "height": 720,
+    "margin_x": 20,
+    "title_y": 10,
+    "title_h": 48,
+    "kpi_y": 70,
+    "kpi_h": 110,
+    "content_y": 200,
+    "content_h": 490,
+}
+
+# 5-KPI row geometry — first 4 cards 228px, last 248px (covers right edge)
+KPI_X_POSITIONS = [20, 268, 516, 764, 1012]
+KPI_W = 228
+KPI_LAST_W = 248
+KPI_H = 110
+KPI_Y = 70
+CHART_TITLE_H = 28
+
+
+# ─── DECISION + SPEC LOADING ──────────────────────────────────────────────────
 
 def load_decisions() -> dict:
     """Load design_decisions.yaml if present, else return defaults."""
@@ -25,19 +74,126 @@ def load_decisions() -> dict:
         return {"client_name": "Lodværket", "pages": [], "kpi_cards": {}, "slicers": {}}
     try:
         import yaml
-        return yaml.safe_load(DECISIONS_FILE.read_text(encoding="utf-8")) or {}
     except ImportError:
-        # PyYAML not installed — fall back gracefully
         return {"client_name": "Lodværket", "pages": [], "kpi_cards": {}, "slicers": {}}
+    return yaml.safe_load(DECISIONS_FILE.read_text(encoding="utf-8")) or {}
 
 
-DECISIONS = load_decisions()
-CLIENT_NAME = DECISIONS.get("client_name", "Lodværket")
+def load_spec() -> dict:
+    """Load the report spec — client override first, then bundled example."""
+    try:
+        import yaml
+    except ImportError:
+        raise SystemExit("PyYAML required: pip install pyyaml")
 
-SCHEMA_PAGE = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json"
-SCHEMA_VISUAL = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json"
-SCHEMA_PAGES = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.1.0/schema.json"
+    for candidate in SPEC_CANDIDATES:
+        if candidate.exists():
+            spec = yaml.safe_load(candidate.read_text(encoding="utf-8"))
+            validate_spec(spec, source=candidate)
+            return spec
 
+    raise SystemExit(
+        f"No report spec found. Looked for:\n  " + "\n  ".join(str(c) for c in SPEC_CANDIDATES)
+    )
+
+
+# ─── SPEC VALIDATION ──────────────────────────────────────────────────────────
+
+class SpecError(ValueError):
+    """Raised when report_spec.yaml violates the contract."""
+
+
+def validate_spec(spec: dict, source: Path) -> None:
+    """Enforce the rules documented in templates/report_spec.schema.yaml.
+
+    Fail loudly with the file path and the offending path inside the YAML.
+    Silent fallback would produce broken visuals downstream — see
+    docs/PBI_PATTERNS.md "Lessons learned" on cost of bad patterns × N visuals.
+    """
+    if not isinstance(spec, dict):
+        raise SpecError(f"{source}: top-level must be a mapping")
+
+    version = spec.get("version")
+    if version != 1:
+        raise SpecError(f"{source}: unsupported version {version!r} (only v1)")
+
+    canvas = {**DEFAULT_CANVAS, **(spec.get("canvas") or {})}
+    width, height = canvas["width"], canvas["height"]
+
+    pages = spec.get("pages") or []
+    if not pages:
+        raise SpecError(f"{source}: pages[] is empty")
+
+    seen_keys: set[str] = set()
+    for pi, page in enumerate(pages):
+        ppath = f"pages[{pi}]"
+        if "key" not in page or "display_name" not in page or "visuals" not in page:
+            raise SpecError(f"{source}: {ppath} missing key/display_name/visuals")
+        key = page["key"]
+        if key in seen_keys:
+            raise SpecError(f"{source}: duplicate page key {key!r}")
+        seen_keys.add(key)
+
+        positions: list[tuple[int, int, int, int, str]] = []
+        for vi, v in enumerate(page["visuals"]):
+            vpath = f"{ppath}.visuals[{vi}]"
+            vtype = v.get("type")
+            if vtype not in SUPPORTED_VISUAL_TYPES:
+                raise SpecError(f"{source}: {vpath} unsupported type {vtype!r}")
+
+            for k in ("id", "x", "y", "w", "h"):
+                if k not in v:
+                    raise SpecError(f"{source}: {vpath} missing {k!r}")
+
+            x, y, w, h = v["x"], v["y"], v["w"], v["h"]
+            if x + w > width or y + h > height:
+                raise SpecError(
+                    f"{source}: {vpath} ({v['id']}) overflows canvas "
+                    f"(x+w={x+w}, y+h={y+h}; canvas={width}×{height})"
+                )
+
+            if vtype == "slicer":
+                if not v.get("field"):
+                    raise SpecError(f"{source}: {vpath} slicer needs `field`")
+            elif vtype == "tableEx":
+                if not v.get("values"):
+                    raise SpecError(f"{source}: {vpath} tableEx needs non-empty `values`")
+            else:
+                if not v.get("category"):
+                    raise SpecError(f"{source}: {vpath} {vtype} needs `category`")
+                if not v.get("values"):
+                    raise SpecError(f"{source}: {vpath} {vtype} needs non-empty `values`")
+
+            # Field mutual-exclusion (column XOR measure)
+            fields_to_check: list[dict] = []
+            if v.get("category"):
+                fields_to_check.append(v["category"])
+            fields_to_check.extend(v.get("values") or [])
+            if v.get("field"):
+                fields_to_check.append(v["field"])
+            for fi, f in enumerate(fields_to_check):
+                has_col = "column" in f
+                has_meas = "measure" in f
+                if has_col == has_meas:
+                    raise SpecError(
+                        f"{source}: {vpath} field[{fi}] must have exactly one of "
+                        f"`column` or `measure` (got column={has_col}, measure={has_meas})"
+                    )
+
+            positions.append((x, y, w, h, v["id"]))
+
+        # Overlap detection (axis-aligned rectangle intersection)
+        for i in range(len(positions)):
+            for j in range(i + 1, len(positions)):
+                ax, ay, aw, ah, aid = positions[i]
+                bx, by, bw, bh, bid = positions[j]
+                if ax < bx + bw and ax + aw > bx and ay < by + bh and ay + ah > by:
+                    raise SpecError(
+                        f"{source}: {ppath} visuals {aid!r} and {bid!r} overlap"
+                    )
+
+
+# ─── LOW-LEVEL VISUAL BUILDERS (unchanged shape — see docs/PBI_PATTERNS.md) ──
 
 def hex_id(name: str) -> str:
     return hashlib.md5(name.encode()).hexdigest()[:20]
@@ -73,7 +229,14 @@ def column_field(table: str, column: str) -> dict:
     }
 
 
-def make_card(measure: str, x: int, y: int, w: int = 228, h: int = 110, label: str = None) -> dict:
+def spec_field_to_pbi(spec_field: dict) -> dict:
+    """Translate a {table, column} or {table, measure} mapping to a PBI projection."""
+    if "measure" in spec_field:
+        return measure_field(spec_field["table"], spec_field["measure"])
+    return column_field(spec_field["table"], spec_field["column"])
+
+
+def make_card(measure: str, x: int, y: int, w: int = 228, h: int = 110, label: str | None = None) -> dict:
     return {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"card_{measure}_{x}_{y}"),
@@ -130,20 +293,18 @@ def _no_auto_title() -> dict:
 
 
 def make_chart(visual_type: str, name_suffix: str, category: dict, values: list[dict],
-               x: int, y: int, w: int, h: int, title: str = None) -> dict:
-    projections_cat = [category]
-    projections_y = values
+               x: int, y: int, w: int, h: int, title: str | None = None) -> dict:
     visual = {
         "visualType": visual_type,
         "query": {
             "queryState": {
-                "Category": {"projections": projections_cat},
-                "Y": {"projections": projections_y},
+                "Category": {"projections": [category]},
+                "Y": {"projections": values},
             }
         },
         "drillFilterOtherVisuals": True,
+        "objects": _no_auto_title(),
     }
-    visual["objects"] = _no_auto_title()
     result = {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"{visual_type}_{name_suffix}_{x}_{y}"),
@@ -155,7 +316,7 @@ def make_chart(visual_type: str, name_suffix: str, category: dict, values: list[
     return result
 
 
-def make_donut(name_suffix: str, category: dict, value: dict, x: int, y: int, w: int, h: int, title: str = None) -> dict:
+def make_donut(name_suffix: str, category: dict, value: dict, x: int, y: int, w: int, h: int, title: str | None = None) -> dict:
     visual = {
         "visualType": "donutChart",
         "query": {
@@ -165,8 +326,8 @@ def make_donut(name_suffix: str, category: dict, value: dict, x: int, y: int, w:
             }
         },
         "drillFilterOtherVisuals": True,
+        "objects": _no_auto_title(),
     }
-    visual["objects"] = _no_auto_title()
     result = {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"donut_{name_suffix}_{x}_{y}"),
@@ -178,26 +339,31 @@ def make_donut(name_suffix: str, category: dict, value: dict, x: int, y: int, w:
     return result
 
 
-def make_image(image_name: str, x: int, y: int, w: int, h: int) -> dict:
-    """Logo / static image visual. image_name is the file name inside Report/StaticResources/RegisteredResources/."""
-    return {
-        "$schema": SCHEMA_VISUAL,
-        "name": hex_id(f"image_{image_name}_{x}_{y}"),
-        "position": {"x": x, "y": y, "z": 0, "height": h, "width": w, "tabOrder": 0},
-        "visual": {
-            "visualType": "image",
-            "objects": {
-                "general": [{"properties": {"imageUrl": {"image": {"name": image_name, "url": image_name}}}}],
-                "imageScaling": [{"properties": {"imageScalingType": {"expr": {"Literal": {"Value": "'Fit'"}}}}}],
-            },
-            "drillFilterOtherVisuals": True,
+def make_table(name_suffix: str, fields: list[dict], x: int, y: int, w: int, h: int, title: str | None = None) -> dict:
+    visual = {
+        "visualType": "tableEx",
+        "query": {
+            "queryState": {
+                "Values": {"projections": fields}
+            }
         },
+        "drillFilterOtherVisuals": True,
+        "objects": _no_auto_title(),
     }
+    result = {
+        "$schema": SCHEMA_VISUAL,
+        "name": hex_id(f"table_{name_suffix}_{x}_{y}"),
+        "position": {"x": x, "y": y, "z": 0, "height": h, "width": w, "tabOrder": 0},
+        "visual": visual,
+    }
+    if title:
+        result["_label"] = title
+    return result
 
 
-def make_slicer(field: dict, x: int, y: int, w: int = 240, h: int = 70, title: str = None) -> dict:
-    """PBI slicer uses data role 'Field' (singular), not 'Values' like cards.
-    Using the wrong role gives 'Select or drag fields to populate visual'."""
+def make_slicer(field: dict, x: int, y: int, w: int = 240, h: int = 70, title: str | None = None) -> dict:
+    """PBI slicer uses data role 'Field' (singular), not 'Values'.
+    Wrong role = 'Select or drag fields to populate visual'. See PBI_PATTERNS.md."""
     return {
         "$schema": SCHEMA_VISUAL,
         "name": hex_id(f"slicer_{field['queryRef']}_{x}_{y}"),
@@ -218,112 +384,7 @@ def make_slicer(field: dict, x: int, y: int, w: int = 240, h: int = 70, title: s
     }
 
 
-def make_table(name_suffix: str, fields: list[dict], x: int, y: int, w: int, h: int, title: str = None) -> dict:
-    visual = {
-        "visualType": "tableEx",
-        "query": {
-            "queryState": {
-                "Values": {"projections": fields}
-            }
-        },
-        "drillFilterOtherVisuals": True,
-    }
-    visual["objects"] = _no_auto_title()
-    result = {
-        "$schema": SCHEMA_VISUAL,
-        "name": hex_id(f"table_{name_suffix}_{x}_{y}"),
-        "position": {"x": x, "y": y, "z": 0, "height": h, "width": w, "tabOrder": 0},
-        "visual": visual,
-    }
-    if title:
-        result["_label"] = title
-    return result
-
-
-# ─── PAGE DEFINITIONS ──────────────────────────────────────
-PAGE_DEFS = [
-    {
-        "key": "exec",
-        "displayName": "1. Executive Dashboard",
-        "title": f"{CLIENT_NAME} — Executive Dashboard",
-        "subtitle": "Cross-functional KPIs across Sales, Pipeline, Finance, HR and Customers",
-    },
-    {
-        "key": "pipeline",
-        "displayName": "2. Pipeline & CRM",
-        "title": "Pipeline & CRM",
-        "subtitle": "Deal flow, win rate, customer segments",
-    },
-    {
-        "key": "marketing",
-        "displayName": "3. Marketing & Web",
-        "title": "Marketing & Web Analytics",
-        "subtitle": "Lead generation, campaign ROI, web traffic",
-    },
-    {
-        "key": "finance",
-        "displayName": "4. Finance & Budget",
-        "title": "Finance & Budget",
-        "subtitle": "Revenue vs Budget, P&L, variance analysis",
-    },
-    {
-        "key": "hr",
-        "displayName": "5. HR & People",
-        "title": "HR & People",
-        "subtitle": "Headcount, utilization, salary cost",
-    },
-    {
-        "key": "csat",
-        "displayName": "6. NPS & Support",
-        "title": "Customer Satisfaction & Support",
-        "subtitle": "NPS score, ticket flow, SLA performance",
-    },
-    {
-        "key": "quality",
-        "displayName": "7. Quality & Compliance",
-        "title": "Quality & Compliance",
-        "subtitle": "SLA performance, critical issues, ticket category trends",
-    },
-    {
-        "key": "customer_detail",
-        "displayName": "Customer Detail",
-        "title": "Customer Detail",
-        "subtitle": "Drill-through view — accessed by right-clicking a customer in any page",
-        "drill_through": True,
-    },
-    {
-        "key": "employee_detail",
-        "displayName": "Employee Detail",
-        "title": "Employee Detail",
-        "subtitle": "Drill-through view — accessed by right-clicking an employee in HR page",
-        "drill_through": True,
-    },
-]
-
-
-def _decisions_page(key: str) -> dict:
-    """Find this page's decision config in design_decisions.yaml (or empty dict)."""
-    for p in DECISIONS.get("pages", []):
-        if p.get("key") == key:
-            return p
-    return {}
-
-
-def _is_page_enabled(key: str) -> bool:
-    """Default true; YAML can disable individual pages. Drill-through pages enabled
-    only if listed in interactivity.drill_through_pages."""
-    # Drill-through pages
-    if key in ("customer_detail", "employee_detail"):
-        dt = DECISIONS.get("interactivity", {}).get("drill_through_pages", [])
-        return key in dt
-
-    pages = DECISIONS.get("pages", [])
-    if not pages:
-        # No decisions yaml — only include the original 6 default pages
-        return key not in ("quality", "customer_detail", "employee_detail")
-    pd = _decisions_page(key)
-    return pd.get("enabled", False) if pd else False
-
+# ─── KPI ROW ──────────────────────────────────────────────────────────────────
 
 _DEFAULT_KPIS: dict[str, list[tuple[str, str]]] = {
     "exec": [
@@ -369,500 +430,219 @@ _DEFAULT_KPIS: dict[str, list[tuple[str, str]]] = {
         ("Avg Satisfaction Rating", "CSAT"),
     ],
     "quality": [
-        ("Critical Tickets",        "Critical"),
-        ("SLA Met Rate",            "SLA Met"),
+        ("Critical Tickets", "Critical"),
+        ("SLA Met Rate", "SLA Met"),
         ("Avg Response Time Hours", "Avg Response"),
-        ("Resolution Rate",         "Resolution"),
-        ("Avg Resolution Days",     "Avg Days"),
+        ("Resolution Rate", "Resolution"),
+        ("Avg Resolution Days", "Avg Days"),
+    ],
+    "customer_detail": [
+        ("Revenue", "Revenue"),
+        ("Pipeline Value", "Pipeline"),
+        ("Total Tickets", "Tickets"),
+        ("NPS Responses", "NPS Surveys"),
+        ("Avg Satisfaction Rating", "CSAT"),
+    ],
+    "employee_detail": [
+        ("Avg Utilization", "Utilization"),
+        ("Total Billable Hours", "Billable hrs"),
+        ("Total Internal Hours", "Internal hrs"),
+        ("Avg Cost Per Billable Hour", "Cost/hr"),
+        ("Avg Tenure Years", "Tenure"),
     ],
 }
 
 
-def _top_kpis_for(page_key: str) -> list[tuple[str, str]]:
-    """Read top KPIs for any page from decisions, fall back to defaults per page."""
-    pd = _decisions_page(page_key)
+def _decisions_page(decisions: dict, key: str) -> dict:
+    for p in decisions.get("pages", []):
+        if p.get("key") == key:
+            return p
+    return {}
+
+
+def _top_kpis_for(decisions: dict, page_key: str) -> list[tuple[str, str]]:
+    pd = _decisions_page(decisions, page_key)
     if pd and pd.get("top_kpis"):
         return [(k["measure"], k.get("label", k["measure"])) for k in pd["top_kpis"][:5]]
     return _DEFAULT_KPIS.get(page_key, _DEFAULT_KPIS["exec"])
 
 
-# Back-compat alias
-_top_kpis_for_exec = lambda: _top_kpis_for("exec")
-
-
-# Right-sidebar slicer (240px wide). Content area shrinks accordingly.
-SIDEBAR_W = 0  # 0 = no sidebar. Updated by main() based on decisions.yaml
-CONTENT_W = 1280
-
-# KPI card widths for 5 cards
-KPI_W, KPI_H, KPI_Y = 228, 110, 70
-KPI_LAST_W = 248
-CONTENT_Y = 200
-CONTENT_H = 490
-CHART_TITLE_H = 28
-
-
-def labeled(label: str, chart: dict) -> list[dict]:
-    """Emit [title textbox, chart] pair, shifting chart down 30px so label sits above.
-    The chart's height is reduced by 30 to keep within original bounds."""
-    pos = chart["position"]
-    x, y, w = pos["x"], pos["y"], pos["width"]
-    title_box = make_textbox(label, x, y, w, CHART_TITLE_H - 4, size=12)
-    chart["position"]["y"] = y + CHART_TITLE_H
-    chart["position"]["height"] = max(80, pos["height"] - CHART_TITLE_H)
-    return [title_box, chart]
-
-
 def kpi_row(measures: list[tuple[str, str]]) -> list[dict]:
-    """measures: list of (measure_name, label). x positions: 20,268,516,764,1012.
-
-    One clean 110px card per KPI. vs-Target / trend measures are better placed
-    in a Table visual on a separate page — stacking them under KPIs crushes
-    label hierarchy (see docs/PBI_PATTERNS.md)."""
-    xs = [20, 268, 516, 764, 1012]
     out: list[dict] = []
     for i, (m, label) in enumerate(measures[:5]):
         w = KPI_LAST_W if i == 4 else KPI_W
-        out.append(make_card(m, xs[i], KPI_Y, w, KPI_H, label))
+        out.append(make_card(m, KPI_X_POSITIONS[i], KPI_Y, w, KPI_H, label))
     return out
 
 
-def page_exec() -> list[dict]:
-    visuals = []
-    # title — client name in brand-primary bold acts as "logo" + dashboard label
-    visuals.append(make_textbox(f"{CLIENT_NAME} — Executive Dashboard", 20, 10, 1080, 48, size=24))
-    # KPIs — top 5 from design_decisions.yaml
-    visuals += kpi_row(_top_kpis_for_exec())
-    # Revenue by month (line chart)
-    visuals.append(make_chart(
-        "lineChart", "rev_month",
-        column_field("gold_dim_date", "year_month"),
-        [measure_field("_Measures", "Revenue")],
-        20, CONTENT_Y, 620, 240, "Revenue by Month",
-    ))
-    # Revenue by industry (bar chart)
-    visuals.append(make_chart(
-        "clusteredBarChart", "rev_industry",
-        column_field("gold_dim_customer", "industry"),
-        [measure_field("_Measures", "Revenue")],
-        660, CONTENT_Y, 600, 240, "Revenue by Industry",
-    ))
-    # Pipeline by stage donut
-    visuals.append(make_donut(
-        "pipe_stage",
-        column_field("gold_fact_pipeline", "deal_status"),
-        measure_field("_Measures", "Pipeline Value"),
-        20, CONTENT_Y + 250, 410, 240, "Pipeline by Status",
-    ))
-    # Budget Variance by category
-    visuals.append(make_chart(
-        "clusteredColumnChart", "budget_cat",
-        column_field("gold_fact_budget", "category"),
-        [measure_field("_Measures", "Budget Total"), measure_field("_Measures", "Actual Total")],
-        450, CONTENT_Y + 250, 420, 240, "Budget vs Actual",
-    ))
-    # NPS over time
-    visuals.append(make_chart(
-        "lineChart", "nps_quarter",
-        column_field("gold_fact_nps", "quarter"),
-        [measure_field("_Measures", "NPS Score")],
-        890, CONTENT_Y + 250, 370, 240, "NPS by Quarter",
-    ))
+# ─── PAGE / VISUAL RENDERING FROM SPEC ────────────────────────────────────────
+
+def render_visual(v: dict) -> dict:
+    """Translate one spec visual dict into a PBI visual.json object."""
+    vtype = v["type"]
+    x, y, w, h = v["x"], v["y"], v["w"], v["h"]
+    title = v.get("title")
+    vid = v["id"]
+
+    if vtype == "slicer":
+        return make_slicer(spec_field_to_pbi(v["field"]), x, y, w, h, title)
+
+    if vtype == "tableEx":
+        return make_table(
+            vid,
+            [spec_field_to_pbi(f) for f in v["values"]],
+            x, y, w, h, title,
+        )
+
+    if vtype == "donutChart":
+        return make_donut(
+            vid,
+            spec_field_to_pbi(v["category"]),
+            spec_field_to_pbi(v["values"][0]),
+            x, y, w, h, title,
+        )
+
+    # lineChart / clusteredBarChart / clusteredColumnChart
+    return make_chart(
+        vtype, vid,
+        spec_field_to_pbi(v["category"]),
+        [spec_field_to_pbi(val) for val in v["values"]],
+        x, y, w, h, title,
+    )
+
+
+def render_page(page: dict, client_name: str, decisions: dict) -> list[dict]:
+    """Build the full visual list for one page (title, KPIs, then spec visuals)."""
+    title_text = page.get("title", page["display_name"]).replace("{client_name}", client_name)
+    visuals: list[dict] = [make_textbox(title_text, 20, 10, 1080, 48, size=24)]
+    visuals += kpi_row(_top_kpis_for(decisions, page["key"]))
+    for v in page.get("visuals", []):
+        visuals.append(render_visual(v))
     return visuals
 
 
-def page_pipeline() -> list[dict]:
-    visuals = [make_textbox("Pipeline & CRM", 20, 10, 1080, 48, size=24)]
-    visuals += kpi_row(_top_kpis_for("pipeline"))
-    # Slicer: country
-    visuals.append(make_slicer(column_field("gold_dim_customer", "country_group"), 20, CONTENT_Y, 240, 70))
-    # Pipeline by stage
-    visuals.append(make_donut(
-        "stage", column_field("gold_fact_pipeline", "stage"),
-        measure_field("_Measures", "Pipeline Value"),
-        280, CONTENT_Y, 380, 240, "Pipeline by Stage",
-    ))
-    # Pipeline by owner
-    visuals.append(make_chart(
-        "clusteredBarChart", "owner",
-        column_field("gold_fact_pipeline", "deal_owner"),
-        [measure_field("_Measures", "Pipeline Value")],
-        680, CONTENT_Y, 580, 240, "Pipeline by Owner",
-    ))
-    # Deals table
-    visuals.append(make_table(
-        "deals",
-        [
-            column_field("gold_fact_pipeline", "deal_name"),
-            column_field("gold_dim_customer", "customer_name"),
-            column_field("gold_fact_pipeline", "stage"),
-            measure_field("_Measures", "Pipeline Value"),
-            measure_field("_Measures", "Weighted Pipeline"),
-        ],
-        20, CONTENT_Y + 250, 800, 240, "Open Deals",
-    ))
-    # Win rate by source
-    visuals.append(make_chart(
-        "clusteredColumnChart", "win_source",
-        column_field("gold_fact_pipeline", "deal_source"),
-        [measure_field("_Measures", "Win Rate")],
-        840, CONTENT_Y + 250, 420, 240, "Win Rate by Source",
-    ))
+def split_titled_visuals(raw: list[dict]) -> list[dict]:
+    """Visuals with `_label` get split into [12pt title textbox, shifted chart].
+    Mirrors the behaviour of the old gen_pbi_report.main() loop so structural
+    output stays identical."""
+    visuals: list[dict] = []
+    for v in raw:
+        if v.get("_label"):
+            label = v.pop("_label")
+            pos = v["position"]
+            x, y, w = pos["x"], pos["y"], pos["width"]
+            visuals.append(make_textbox(label, x, y, w, CHART_TITLE_H - 4, size=12))
+            pos["y"] = y + CHART_TITLE_H
+            pos["height"] = max(80, pos["height"] - CHART_TITLE_H)
+            visuals.append(v)
+        else:
+            visuals.append(v)
     return visuals
 
 
-def page_marketing() -> list[dict]:
-    visuals = [make_textbox("Marketing & Web Analytics", 20, 10, 1080, 48, size=24)]
-    visuals += kpi_row(_top_kpis_for("marketing"))
-    # Campaign type donut
-    visuals.append(make_donut(
-        "camp_type", column_field("gold_dim_campaign", "campaign_type"),
-        measure_field("_Measures", "Marketing Spend"),
-        20, CONTENT_Y, 400, 240, "Spend by Campaign Type",
-    ))
-    # Leads by campaign
-    visuals.append(make_chart(
-        "clusteredBarChart", "leads_campaign",
-        column_field("gold_dim_campaign", "campaign_name"),
-        [measure_field("_Measures", "Total Leads"), measure_field("_Measures", "Converted Leads")],
-        440, CONTENT_Y, 820, 240, "Leads by Campaign",
-    ))
-    # Sessions by source
-    visuals.append(make_chart(
-        "clusteredColumnChart", "sess_source",
-        column_field("gold_fact_web_sessions", "source"),
-        [measure_field("_Measures", "Total Sessions"), measure_field("_Measures", "Total Web Conversions")],
-        20, CONTENT_Y + 250, 620, 240, "Web Sessions by Source",
-    ))
-    # ROI table
-    visuals.append(make_table(
-        "campaigns",
-        [
-            column_field("gold_dim_campaign", "campaign_name"),
-            column_field("gold_dim_campaign", "campaign_type"),
-            measure_field("_Measures", "Marketing Spend"),
-            measure_field("_Measures", "Total Leads"),
-            measure_field("_Measures", "Avg Cost Per Lead"),
-        ],
-        660, CONTENT_Y + 250, 600, 240, "Campaign Performance",
-    ))
-    return visuals
+def append_global_slicer(visuals: list[dict], decisions: dict) -> None:
+    """If design_decisions.yaml enables a global slicer, drop it top-right."""
+    g = (decisions.get("slicers") or {}).get("global") or {}
+    if not g.get("enabled") or not g.get("field"):
+        return
+    try:
+        tbl, col = g["field"].split(".", 1)
+    except ValueError:
+        return
+    visuals.append(make_slicer(column_field(tbl, col), 1100, 10, 160, 48))
 
 
-def page_finance() -> list[dict]:
-    visuals = [make_textbox("Finance & Budget", 20, 10, 1080, 48, size=24)]
-    visuals += kpi_row(_top_kpis_for("finance"))
-    # Slicer year
-    visuals.append(make_slicer(column_field("gold_dim_date", "year"), 20, CONTENT_Y, 240, 70))
-    # Budget vs Actual by month
-    visuals.append(make_chart(
-        "lineChart", "ba_month",
-        column_field("gold_dim_date", "year_month"),
-        [measure_field("_Measures", "Budget Total"), measure_field("_Measures", "Actual Total")],
-        280, CONTENT_Y, 980, 240, "Budget vs Actual by Month",
-    ))
-    # P&L breakdown
-    visuals.append(make_table(
-        "pnl",
-        [
-            column_field("gold_fact_budget", "category"),
-            measure_field("_Measures", "Budget Total"),
-            measure_field("_Measures", "Actual Total"),
-            measure_field("_Measures", "Budget Variance"),
-            measure_field("_Measures", "Budget Variance %"),
-        ],
-        20, CONTENT_Y + 250, 620, 240, "P&L by Category",
-    ))
-    # Department spend
-    visuals.append(make_chart(
-        "clusteredBarChart", "dept_spend",
-        column_field("gold_fact_budget", "department"),
-        [measure_field("_Measures", "Actual Total")],
-        660, CONTENT_Y + 250, 600, 240, "Actual Spend by Department",
-    ))
-    return visuals
+def _drill_through_enabled(decisions: dict, key: str) -> bool:
+    return key in (decisions.get("interactivity") or {}).get("drill_through_pages", [])
 
 
-def page_hr() -> list[dict]:
-    visuals = [make_textbox("HR & People", 20, 10, 1080, 48, size=24)]
-    visuals += kpi_row(_top_kpis_for("hr"))
-    # Headcount by department
-    visuals.append(make_chart(
-        "clusteredBarChart", "head_dept",
-        column_field("gold_dim_employee", "department"),
-        [measure_field("_Measures", "Total Headcount")],
-        20, CONTENT_Y, 620, 240, "Headcount by Department",
-    ))
-    # Utilization by department
-    visuals.append(make_chart(
-        "clusteredColumnChart", "util_dept",
-        column_field("gold_fact_hr", "department"),
-        [measure_field("_Measures", "Avg Utilization")],
-        660, CONTENT_Y, 600, 240, "Utilization by Department",
-    ))
-    # Salary by role
-    visuals.append(make_chart(
-        "clusteredBarChart", "sal_role",
-        column_field("gold_dim_employee", "role"),
-        [measure_field("_Measures", "Total Salary Cost")],
-        20, CONTENT_Y + 250, 620, 240, "Salary Cost by Role",
-    ))
-    # Employee table
-    visuals.append(make_table(
-        "emp",
-        [
-            column_field("gold_dim_employee", "first_name"),
-            column_field("gold_dim_employee", "last_name"),
-            column_field("gold_dim_employee", "department"),
-            column_field("gold_dim_employee", "role"),
-            column_field("gold_dim_employee", "annual_salary_dkk"),
-        ],
-        660, CONTENT_Y + 250, 600, 240, "Employee Directory",
-    ))
-    return visuals
+# Pages that are NOT rendered by default when no design_decisions.yaml is
+# present. Matches the legacy gating in the pre-spec renderer so output is
+# byte-stable across the refactor. The client opts in to these via
+# design_decisions.yaml (drill_through pages via interactivity.drill_through_pages;
+# quality via pages[] with enabled: true).
+DEFAULT_OFF_PAGES = {"quality", "customer_detail", "employee_detail"}
 
 
-def page_csat() -> list[dict]:
-    visuals = [make_textbox("Customer Satisfaction & Support", 20, 10, 1080, 48, size=24)]
-    visuals += kpi_row(_top_kpis_for("csat"))
-    # NPS by category donut
-    visuals.append(make_donut(
-        "nps_cat", column_field("gold_fact_nps", "nps_category"),
-        measure_field("_Measures", "NPS Responses"),
-        20, CONTENT_Y, 400, 240, "NPS Distribution",
-    ))
-    # Tickets by priority
-    visuals.append(make_chart(
-        "clusteredColumnChart", "tk_prio",
-        column_field("gold_fact_tickets", "priority"),
-        [measure_field("_Measures", "Total Tickets")],
-        440, CONTENT_Y, 400, 240, "Tickets by Priority",
-    ))
-    # Tickets by category
-    visuals.append(make_donut(
-        "tk_cat", column_field("gold_fact_tickets", "category"),
-        measure_field("_Measures", "Total Tickets"),
-        860, CONTENT_Y, 400, 240, "Tickets by Category",
-    ))
-    # Ticket detail table
-    visuals.append(make_table(
-        "tk_table",
-        [
-            column_field("gold_fact_tickets", "ticket_id"),
-            column_field("gold_fact_tickets", "company_name"),
-            column_field("gold_fact_tickets", "category"),
-            column_field("gold_fact_tickets", "priority"),
-            column_field("gold_fact_tickets", "status"),
-            measure_field("_Measures", "Avg Response Time Hours"),
-        ],
-        20, CONTENT_Y + 250, 1240, 240, "Open Tickets",
-    ))
-    return visuals
+def is_page_enabled(page: dict, decisions: dict) -> bool:
+    """Page is rendered if:
+      • drill-through page → only when listed in interactivity.drill_through_pages
+      • quality (or other DEFAULT_OFF_PAGES) → only when decisions explicitly enables it
+      • otherwise → either no decisions.pages[] at all (default-on), or
+        decisions.pages[key].enabled == true
+    """
+    key = page["key"]
+    drill_through = bool(page.get("drill_through"))
+    if drill_through:
+        return _drill_through_enabled(decisions, key)
+
+    dec_pages = decisions.get("pages") or []
+    if not dec_pages:
+        # No decisions yaml — match the legacy default: quality stays off.
+        return key not in DEFAULT_OFF_PAGES
+    pd = _decisions_page(decisions, key)
+    return bool(pd.get("enabled", False)) if pd else False
 
 
-def page_quality() -> list[dict]:
-    """Medical/regulatory Quality & Compliance page — built from gold_fact_tickets."""
-    visuals = [make_textbox("Quality & Compliance", 20, 10, 1080, 48, size=24)]
-    visuals += kpi_row(_top_kpis_for("quality"))
-    # Tickets by category over time
-    visuals.append(make_chart(
-        "lineChart", "tk_cat_month",
-        column_field("gold_dim_date", "year_month"),
-        [measure_field("_Measures", "Total Tickets")],
-        20, CONTENT_Y, 620, 240, "Tickets over Time",
-    ))
-    # SLA met by category
-    visuals.append(make_chart(
-        "clusteredBarChart", "sla_cat",
-        column_field("gold_fact_tickets", "category"),
-        [measure_field("_Measures", "SLA Met Rate")],
-        660, CONTENT_Y, 600, 240, "SLA Met Rate by Category",
-    ))
-    # Critical / Open ticket table
-    visuals.append(make_table(
-        "critical_tk",
-        [
-            column_field("gold_fact_tickets", "ticket_id"),
-            column_field("gold_fact_tickets", "company_name"),
-            column_field("gold_fact_tickets", "category"),
-            column_field("gold_fact_tickets", "priority"),
-            column_field("gold_fact_tickets", "status"),
-            column_field("gold_fact_tickets", "sla_met"),
-            measure_field("_Measures", "Avg Resolution Days"),
-        ],
-        20, CONTENT_Y + 250, 1240, 240, "Critical Issues",
-    ))
-    return visuals
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
 
+def main() -> None:
+    decisions = load_decisions()
+    spec = load_spec()
+    client_name = decisions.get("client_name", "Lodværket")
 
-def page_customer_detail() -> list[dict]:
-    """Drill-through page — shows full detail for a single customer.
-    Reached by right-clicking a customer in any other page."""
-    visuals = [make_textbox("Customer Detail", 20, 10, 1080, 48, size=24)]
-    # Customer info card row
-    visuals += kpi_row([
-        ("Revenue",          "Revenue"),
-        ("Pipeline Value",   "Pipeline"),
-        ("Total Tickets",    "Tickets"),
-        ("NPS Responses",    "NPS Surveys"),
-        ("Avg Satisfaction Rating", "CSAT"),
-    ])
-    # Revenue trend for this customer
-    visuals.append(make_chart(
-        "lineChart", "cust_rev_trend",
-        column_field("gold_dim_date", "year_month"),
-        [measure_field("_Measures", "Revenue")],
-        20, CONTENT_Y, 620, 240, "Revenue Trend",
-    ))
-    # Deal history table
-    visuals.append(make_table(
-        "cust_deals",
-        [
-            column_field("gold_fact_pipeline", "deal_name"),
-            column_field("gold_fact_pipeline", "stage"),
-            column_field("gold_fact_pipeline", "deal_status"),
-            measure_field("_Measures", "Pipeline Value"),
-        ],
-        660, CONTENT_Y, 600, 240, "Deal History",
-    ))
-    # Ticket history table
-    visuals.append(make_table(
-        "cust_tickets",
-        [
-            column_field("gold_fact_tickets", "ticket_id"),
-            column_field("gold_fact_tickets", "category"),
-            column_field("gold_fact_tickets", "priority"),
-            column_field("gold_fact_tickets", "status"),
-            measure_field("_Measures", "Avg Response Time Hours"),
-        ],
-        20, CONTENT_Y + 250, 1240, 240, "Support Ticket History",
-    ))
-    return visuals
-
-
-def page_employee_detail() -> list[dict]:
-    """Drill-through page — shows full detail for a single employee."""
-    visuals = [make_textbox("Employee Detail", 20, 10, 1080, 48, size=24)]
-    visuals += kpi_row([
-        ("Avg Utilization",          "Utilization"),
-        ("Total Billable Hours",     "Billable hrs"),
-        ("Total Internal Hours",     "Internal hrs"),
-        ("Avg Cost Per Billable Hour", "Cost/hr"),
-        ("Avg Tenure Years",         "Tenure"),
-    ])
-    # Utilization trend
-    visuals.append(make_chart(
-        "lineChart", "emp_util",
-        column_field("gold_fact_hr", "period"),
-        [measure_field("_Measures", "Avg Utilization")],
-        20, CONTENT_Y, 620, 240, "Utilization Trend",
-    ))
-    # Billable vs internal hours
-    visuals.append(make_chart(
-        "clusteredColumnChart", "emp_hours",
-        column_field("gold_fact_hr", "period"),
-        [measure_field("_Measures", "Total Billable Hours"), measure_field("_Measures", "Total Internal Hours")],
-        660, CONTENT_Y, 600, 240, "Hours Allocation",
-    ))
-    # Detail table
-    visuals.append(make_table(
-        "emp_details",
-        [
-            column_field("gold_dim_employee", "first_name"),
-            column_field("gold_dim_employee", "last_name"),
-            column_field("gold_dim_employee", "department"),
-            column_field("gold_dim_employee", "role"),
-            column_field("gold_dim_employee", "hire_date"),
-            column_field("gold_dim_employee", "annual_salary_dkk"),
-        ],
-        20, CONTENT_Y + 250, 1240, 240, "Profile",
-    ))
-    return visuals
-
-
-PAGE_BUILDERS = {
-    "exec":            page_exec,
-    "pipeline":        page_pipeline,
-    "marketing":       page_marketing,
-    "finance":         page_finance,
-    "hr":              page_hr,
-    "csat":            page_csat,
-    "quality":         page_quality,
-    "customer_detail": page_customer_detail,
-    "employee_detail": page_employee_detail,
-}
-
-
-def main():
-    # Clean existing pages folder (keep only the structure)
     if PAGES.exists():
         for p in PAGES.iterdir():
             if p.is_dir():
                 shutil.rmtree(p)
+    PAGES.mkdir(parents=True, exist_ok=True)
 
-    page_hex_names = []
-    enabled_defs = [d for d in PAGE_DEFS if _is_page_enabled(d["key"])]
+    rendered: list[tuple[str, str]] = []   # (page_hex, display_name)
+    for page in spec["pages"]:
+        if not is_page_enabled(page, decisions):
+            continue
 
-    for pdef in enabled_defs:
-        page_hex = hex_id(f"page_{pdef['key']}")
-        page_hex_names.append(page_hex)
+        page_hex = hex_id(f"page_{page['key']}")
         page_dir = PAGES / page_hex
         page_dir.mkdir(parents=True, exist_ok=True)
 
-        # page.json — drill-through pages are hidden from page nav
         page_json = {
             "$schema": SCHEMA_PAGE,
             "name": page_hex,
-            "displayName": pdef["displayName"],
+            "displayName": page["display_name"],
             "displayOption": "FitToPage",
             "height": 720,
             "width": 1280,
         }
-        if pdef.get("drill_through"):
+        if page.get("drill_through"):
             page_json["visibility"] = "HiddenInViewMode"
         (page_dir / "page.json").write_text(json.dumps(page_json, indent=2))
 
-        # visuals — split any visual with _label into [title textbox, shifted chart]
-        raw = PAGE_BUILDERS[pdef["key"]]()
-        visuals: list[dict] = []
-        for v in raw:
-            if v.get("_label"):
-                label = v.pop("_label")
-                pos = v["position"]
-                x, y, w = pos["x"], pos["y"], pos["width"]
-                visuals.append(make_textbox(label, x, y, w, CHART_TITLE_H - 4, size=12))
-                pos["y"] = y + CHART_TITLE_H
-                pos["height"] = max(80, pos["height"] - CHART_TITLE_H)
-                visuals.append(v)
-            else:
-                visuals.append(v)
-        # Global slicer (top-right corner, y=10) — from design_decisions.yaml
-        # NOTE: per-page slicers from yaml are not rendered because there's no
-        # vertical space at x>=1100 without overlapping the KPI row. Future:
-        # add a filter bar between title and KPIs (requires shifting KPI_Y).
-        global_slicer = DECISIONS.get("slicers", {}).get("global", {})
-        if global_slicer.get("enabled"):
-            try:
-                tbl, col = global_slicer["field"].split(".", 1)
-                visuals.append(make_slicer(column_field(tbl, col), 1100, 10, 160, 48))
-            except (KeyError, ValueError):
-                pass
+        raw_visuals = render_page(page, client_name, decisions)
+        visuals = split_titled_visuals(raw_visuals)
+        append_global_slicer(visuals, decisions)
+
         vis_dir = page_dir / "visuals"
         vis_dir.mkdir(exist_ok=True)
         for v in visuals:
             v_dir = vis_dir / v["name"]
             v_dir.mkdir(exist_ok=True)
             (v_dir / "visual.json").write_text(json.dumps(v, indent=2))
-        print(f"  {pdef['displayName']}: {len(visuals)} visuals")
 
-    # pages.json
+        rendered.append((page_hex, page["display_name"]))
+        print(f"  {page['display_name']}: {len(visuals)} visuals")
+
+    if not rendered:
+        print("WARNING: no pages rendered — check design_decisions.yaml enablement", file=sys.stderr)
+        return
+
     pages_json = {
         "$schema": SCHEMA_PAGES,
-        "pageOrder": page_hex_names,
-        "activePageName": page_hex_names[0],
+        "pageOrder": [h for h, _ in rendered],
+        "activePageName": rendered[0][0],
     }
     (PAGES / "pages.json").write_text(json.dumps(pages_json, indent=2))
-    print(f"\nWrote {len(PAGE_DEFS)} pages to {PAGES}")
+    print(f"\nWrote {len(rendered)} pages to {PAGES}")
 
 
 if __name__ == "__main__":

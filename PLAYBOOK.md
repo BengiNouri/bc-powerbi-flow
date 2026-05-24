@@ -258,8 +258,12 @@ Steps (in this order — don't reorder):
 1. `table_operations.Create` (batch) — all dimensions first (with explicit `columns` array, **no `isKey`** for Import mode).
 2. `table_operations.RefreshWithXMLA` after every Create.
 3. Repeat for facts.
-4. `relationship_operations.Create` (batch) — Many→One, OneDirection, isActive=true (except the second date FK on the same fact).
-5. `table_operations.MarkAsDateTable` on the date dim with the date column.
+4. `table_operations.MarkAsDateTable` on the date dim with the date column.
+   **Do this BEFORE creating relationships** — if any relationship targets the
+   date column before marking, PBI emits a warning and time-intelligence
+   functions (TOTALYTD, SAMEPERIODLASTYEAR, ...) can return blank silently.
+   See PLAYBOOK_DRYRUN.md gap #15.
+5. `relationship_operations.Create` (batch) — Many→One, OneDirection, isActive=true (except the second date FK on the same fact).
 6. `table_operations.Create` `_Measures` with `daxExpression: "ROW(\"placeholder\", BLANK())"` (no `columns`).
 7. `measure_operations.Create` (batch, grouped by `displayFolder`) — all 60+ measures from `dax_measures_full.dax`.
 
@@ -357,4 +361,8 @@ Everything downstream is automatic.
 - [ ] `EVALUATE ROW([Revenue], [Pipeline Value], …)` returns real numbers
 - [ ] All 6 report pages open in PBI Desktop without errors
 - [ ] Report opens in Fabric web after Publish
-- [ ] At least one slicer cross-filters at least one chart
+- [ ] **Slicer cross-filter verified**: open the Pipeline page, click a value in
+      the country/year slicer, and confirm that at least one chart AND at
+      least one KPI card update. A slicer that renders but doesn't filter is
+      a silent bug — usually a missing relationship or a wrong `crossFilter`
+      direction. See PLAYBOOK_DRYRUN.md gap #17.
